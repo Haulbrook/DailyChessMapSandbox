@@ -120,17 +120,22 @@ DailyChessMap/
 
 ## Next Steps
 
-1. **Read the Documentation**
+1. **Deploy to Production** 🚀
+   - See `DEPLOY_NOW.md` - Quick deployment guide
+   - See `DEPLOYMENT.md` - Comprehensive deployment documentation
+   - Run `./deploy.sh` - Automated deployment script
+
+2. **Read the Documentation**
    - `crew-battle-map/README.md` - Full user guide
    - `crew-battle-map/INTEGRATION.md` - Integration guide
    - `crew-battle-map/sample-assets/README.md` - Asset guide
 
-2. **Customize**
+3. **Customize**
    - Change colors by editing CSS variables
    - Modify icons in the JavaScript
    - Add custom features
 
-3. **Integrate**
+4. **Integrate**
    - Add to your website
    - Connect to backend API
    - Sync with database
