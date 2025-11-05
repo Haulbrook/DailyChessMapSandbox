@@ -1,0 +1,8 @@
+# Netlify Redirects
+# https://docs.netlify.com/routing/redirects/
+
+# Root redirects to index
+/  /index.html  200
+
+# Catch-all for SPA behavior
+/*  /index.html  200
