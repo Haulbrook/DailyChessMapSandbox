@@ -1,0 +1,1029 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crew Battle Map - Equipment & Personnel Tracker</title>
+    <style>
+        :root {
+            --cbm-primary: #2c3e50;
+            --cbm-secondary: #3498db;
+            --cbm-success: #2ecc71;
+            --cbm-danger: #e74c3c;
+            --cbm-warning: #f39c12;
+            --cbm-crew: #9b59b6;
+            --cbm-truck: #e67e22;
+            --cbm-equipment: #16a085;
+            --cbm-bg: #ecf0f1;
+            --cbm-card-bg: #ffffff;
+            --cbm-border: #bdc3c7;
+            --cbm-text: #2c3e50;
+            --cbm-text-light: #7f8c8d;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: var(--cbm-bg);
+            color: var(--cbm-text);
+            line-height: 1.6;
+        }
+
+        .cbm-container {
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Sidebar */
+        .cbm-sidebar {
+            width: 320px;
+            background: var(--cbm-card-bg);
+            border-right: 1px solid var(--cbm-border);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .cbm-header {
+            padding: 20px;
+            background: var(--cbm-primary);
+            color: white;
+        }
+
+        .cbm-header h1 {
+            font-size: 20px;
+            margin-bottom: 5px;
+        }
+
+        .cbm-header p {
+            font-size: 13px;
+            opacity: 0.9;
+        }
+
+        .cbm-controls {
+            padding: 15px;
+            border-bottom: 1px solid var(--cbm-border);
+        }
+
+        .cbm-btn-group {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .cbm-btn {
+            flex: 1;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+
+        .cbm-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .cbm-btn-primary {
+            background: var(--cbm-secondary);
+            color: white;
+        }
+
+        .cbm-btn-success {
+            background: var(--cbm-success);
+            color: white;
+        }
+
+        .cbm-btn-danger {
+            background: var(--cbm-danger);
+            color: white;
+        }
+
+        .cbm-btn-crew { background: var(--cbm-crew); color: white; }
+        .cbm-btn-truck { background: var(--cbm-truck); color: white; }
+        .cbm-btn-equipment { background: var(--cbm-equipment); color: white; }
+
+        .cbm-items-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+        }
+
+        .cbm-items-list h3 {
+            font-size: 14px;
+            text-transform: uppercase;
+            color: var(--cbm-text-light);
+            margin-bottom: 10px;
+            margin-top: 15px;
+        }
+
+        .cbm-items-list h3:first-child {
+            margin-top: 0;
+        }
+
+        .cbm-item {
+            background: var(--cbm-bg);
+            padding: 12px;
+            margin-bottom: 8px;
+            border-radius: 6px;
+            cursor: move;
+            border-left: 4px solid;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.2s;
+        }
+
+        .cbm-item:hover {
+            transform: translateX(4px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .cbm-item.crew { border-left-color: var(--cbm-crew); }
+        .cbm-item.truck { border-left-color: var(--cbm-truck); }
+        .cbm-item.equipment { border-left-color: var(--cbm-equipment); }
+
+        .cbm-item-info {
+            flex: 1;
+        }
+
+        .cbm-item-name {
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 3px;
+        }
+
+        .cbm-item-details {
+            font-size: 12px;
+            color: var(--cbm-text-light);
+        }
+
+        .cbm-item-actions {
+            display: flex;
+            gap: 5px;
+        }
+
+        .cbm-icon-btn {
+            width: 28px;
+            height: 28px;
+            border: none;
+            border-radius: 4px;
+            background: white;
+            color: var(--cbm-text);
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .cbm-icon-btn:hover {
+            background: var(--cbm-secondary);
+            color: white;
+        }
+
+        .cbm-icon-btn.delete:hover {
+            background: var(--cbm-danger);
+        }
+
+        /* Map Area */
+        .cbm-map-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .cbm-map-toolbar {
+            background: var(--cbm-card-bg);
+            border-bottom: 1px solid var(--cbm-border);
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .cbm-map-toolbar-left {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .cbm-file-input {
+            display: none;
+        }
+
+        .cbm-map-container {
+            flex: 1;
+            position: relative;
+            overflow: auto;
+            background: #95a5a6;
+            background-image:
+                linear-gradient(45deg, #bdc3c7 25%, transparent 25%),
+                linear-gradient(-45deg, #bdc3c7 25%, transparent 25%),
+                linear-gradient(45deg, transparent 75%, #bdc3c7 75%),
+                linear-gradient(-45deg, transparent 75%, #bdc3c7 75%);
+            background-size: 20px 20px;
+            background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+        }
+
+        .cbm-map-canvas {
+            position: relative;
+            min-width: 100%;
+            min-height: 100%;
+        }
+
+        .cbm-map-image {
+            position: absolute;
+            top: 0;
+            left: 0;
+            max-width: none;
+            pointer-events: none;
+            user-select: none;
+        }
+
+        .cbm-map-placeholder {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: var(--cbm-text-light);
+            pointer-events: none;
+        }
+
+        .cbm-map-placeholder h2 {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        .cbm-map-placeholder p {
+            font-size: 14px;
+        }
+
+        .cbm-piece {
+            position: absolute;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            color: white;
+            cursor: move;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            user-select: none;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: box-shadow 0.2s;
+            min-width: 80px;
+        }
+
+        .cbm-piece:hover {
+            box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+            z-index: 100;
+        }
+
+        .cbm-piece.dragging {
+            opacity: 0.7;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+        }
+
+        .cbm-piece.crew { background: var(--cbm-crew); }
+        .cbm-piece.truck { background: var(--cbm-truck); }
+        .cbm-piece.equipment { background: var(--cbm-equipment); }
+
+        .cbm-piece-icon {
+            font-size: 16px;
+        }
+
+        /* Modal */
+        .cbm-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .cbm-modal.active {
+            display: flex;
+        }
+
+        .cbm-modal-content {
+            background: var(--cbm-card-bg);
+            border-radius: 8px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow: auto;
+        }
+
+        .cbm-modal-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--cbm-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .cbm-modal-header h2 {
+            font-size: 18px;
+        }
+
+        .cbm-modal-close {
+            width: 32px;
+            height: 32px;
+            border: none;
+            background: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--cbm-text-light);
+            border-radius: 4px;
+        }
+
+        .cbm-modal-close:hover {
+            background: var(--cbm-bg);
+        }
+
+        .cbm-modal-body {
+            padding: 20px;
+        }
+
+        .cbm-form-group {
+            margin-bottom: 20px;
+        }
+
+        .cbm-form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .cbm-form-group input,
+        .cbm-form-group select,
+        .cbm-form-group textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--cbm-border);
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        .cbm-form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .cbm-form-group input:focus,
+        .cbm-form-group select:focus,
+        .cbm-form-group textarea:focus {
+            outline: none;
+            border-color: var(--cbm-secondary);
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+
+        .cbm-modal-footer {
+            padding: 15px 20px;
+            border-top: 1px solid var(--cbm-border);
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .cbm-btn-secondary {
+            background: var(--cbm-bg);
+            color: var(--cbm-text);
+        }
+
+        /* Stats */
+        .cbm-stats {
+            display: flex;
+            gap: 10px;
+            font-size: 13px;
+            color: var(--cbm-text-light);
+        }
+
+        .cbm-stat {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .cbm-stat-badge {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .cbm-stat-badge.crew { background: var(--cbm-crew); }
+        .cbm-stat-badge.truck { background: var(--cbm-truck); }
+        .cbm-stat-badge.equipment { background: var(--cbm-equipment); }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .cbm-container {
+                flex-direction: column;
+            }
+
+            .cbm-sidebar {
+                width: 100%;
+                max-height: 40vh;
+            }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--cbm-bg);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--cbm-border);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--cbm-text-light);
+        }
+    </style>
+</head>
+<body>
+    <div class="cbm-container">
+        <!-- Sidebar -->
+        <div class="cbm-sidebar">
+            <div class="cbm-header">
+                <h1>⚡ Crew Battle Map</h1>
+                <p>Track equipment, trucks, and crews</p>
+            </div>
+
+            <div class="cbm-controls">
+                <div class="cbm-btn-group">
+                    <button class="cbm-btn cbm-btn-crew" onclick="CrewBattleMap.openAddModal('crew')">
+                        + Crew
+                    </button>
+                    <button class="cbm-btn cbm-btn-truck" onclick="CrewBattleMap.openAddModal('truck')">
+                        + Truck
+                    </button>
+                    <button class="cbm-btn cbm-btn-equipment" onclick="CrewBattleMap.openAddModal('equipment')">
+                        + Equipment
+                    </button>
+                </div>
+                <div class="cbm-btn-group">
+                    <button class="cbm-btn cbm-btn-success" onclick="CrewBattleMap.exportData()">
+                        📥 Export
+                    </button>
+                    <button class="cbm-btn cbm-btn-primary" onclick="CrewBattleMap.importData()">
+                        📤 Import
+                    </button>
+                    <button class="cbm-btn cbm-btn-danger" onclick="CrewBattleMap.clearAll()">
+                        🗑️ Clear
+                    </button>
+                </div>
+            </div>
+
+            <div class="cbm-items-list" id="itemsList">
+                <h3>👥 Crews (<span id="crewCount">0</span>)</h3>
+                <div id="crewList"></div>
+
+                <h3>🚚 Trucks (<span id="truckCount">0</span>)</h3>
+                <div id="truckList"></div>
+
+                <h3>🔧 Equipment (<span id="equipmentCount">0</span>)</h3>
+                <div id="equipmentList"></div>
+            </div>
+        </div>
+
+        <!-- Map Area -->
+        <div class="cbm-map-area">
+            <div class="cbm-map-toolbar">
+                <div class="cbm-map-toolbar-left">
+                    <button class="cbm-btn cbm-btn-primary" onclick="document.getElementById('mapImageInput').click()">
+                        🗺️ Upload Map
+                    </button>
+                    <button class="cbm-btn cbm-btn-secondary" onclick="CrewBattleMap.clearMap()">
+                        Clear Map
+                    </button>
+                    <input type="file" id="mapImageInput" class="cbm-file-input" accept="image/*" onchange="CrewBattleMap.handleMapUpload(event)">
+                </div>
+                <div class="cbm-stats">
+                    <div class="cbm-stat">
+                        <div class="cbm-stat-badge crew"></div>
+                        <span id="crewMapCount">0</span> crews on map
+                    </div>
+                    <div class="cbm-stat">
+                        <div class="cbm-stat-badge truck"></div>
+                        <span id="truckMapCount">0</span> trucks
+                    </div>
+                    <div class="cbm-stat">
+                        <div class="cbm-stat-badge equipment"></div>
+                        <span id="equipmentMapCount">0</span> equipment
+                    </div>
+                </div>
+            </div>
+
+            <div class="cbm-map-container" id="mapContainer">
+                <div class="cbm-map-canvas" id="mapCanvas">
+                    <div class="cbm-map-placeholder" id="mapPlaceholder">
+                        <h2>📍 No Map Loaded</h2>
+                        <p>Upload a map image to begin placing crews, trucks, and equipment</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Modal -->
+    <div class="cbm-modal" id="itemModal">
+        <div class="cbm-modal-content">
+            <div class="cbm-modal-header">
+                <h2 id="modalTitle">Add Item</h2>
+                <button class="cbm-modal-close" onclick="CrewBattleMap.closeModal()">×</button>
+            </div>
+            <div class="cbm-modal-body">
+                <form id="itemForm" onsubmit="CrewBattleMap.handleFormSubmit(event)">
+                    <input type="hidden" id="itemId">
+                    <input type="hidden" id="itemType">
+
+                    <div class="cbm-form-group">
+                        <label for="itemName">Name *</label>
+                        <input type="text" id="itemName" required placeholder="Enter name">
+                    </div>
+
+                    <div class="cbm-form-group">
+                        <label for="itemDetails">Details</label>
+                        <textarea id="itemDetails" placeholder="Additional information (optional)"></textarea>
+                    </div>
+
+                    <div class="cbm-modal-footer">
+                        <button type="button" class="cbm-btn cbm-btn-secondary" onclick="CrewBattleMap.closeModal()">
+                            Cancel
+                        </button>
+                        <button type="submit" class="cbm-btn cbm-btn-success">
+                            Save
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function(window) {
+            'use strict';
+
+            // Private state
+            let items = {
+                crew: [],
+                truck: [],
+                equipment: []
+            };
+
+            let pieces = []; // Pieces on the map
+            let mapImage = null;
+            let editingItemId = null;
+            let draggedPiece = null;
+            let dragOffset = { x: 0, y: 0 };
+
+            const STORAGE_KEY = 'crewBattleMapData';
+            const MAP_IMAGE_KEY = 'crewBattleMapImage';
+
+            // Icons for different types
+            const ICONS = {
+                crew: '👥',
+                truck: '🚚',
+                equipment: '🔧'
+            };
+
+            // Main module
+            const CrewBattleMap = {
+                init: function() {
+                    this.loadState();
+                    this.render();
+                    this.attachEvents();
+                },
+
+                loadState: function() {
+                    try {
+                        const saved = localStorage.getItem(STORAGE_KEY);
+                        if (saved) {
+                            const data = JSON.parse(saved);
+                            items = data.items || items;
+                            pieces = data.pieces || [];
+                        }
+
+                        const savedMap = localStorage.getItem(MAP_IMAGE_KEY);
+                        if (savedMap) {
+                            mapImage = savedMap;
+                        }
+                    } catch (e) {
+                        console.error('Error loading state:', e);
+                    }
+                },
+
+                saveState: function() {
+                    try {
+                        const data = {
+                            items: items,
+                            pieces: pieces
+                        };
+                        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+
+                        if (mapImage) {
+                            localStorage.setItem(MAP_IMAGE_KEY, mapImage);
+                        }
+                    } catch (e) {
+                        console.error('Error saving state:', e);
+                        alert('Error saving data. Your browser storage may be full.');
+                    }
+                },
+
+                render: function() {
+                    this.renderItemsList();
+                    this.renderMap();
+                    this.updateStats();
+                },
+
+                renderItemsList: function() {
+                    ['crew', 'truck', 'equipment'].forEach(type => {
+                        const container = document.getElementById(type + 'List');
+                        const countEl = document.getElementById(type + 'Count');
+
+                        container.innerHTML = items[type].map(item => `
+                            <div class="cbm-item ${type}" draggable="true" data-id="${item.id}" data-type="${type}">
+                                <div class="cbm-item-info">
+                                    <div class="cbm-item-name">${ICONS[type]} ${this.escapeHtml(item.name)}</div>
+                                    ${item.details ? `<div class="cbm-item-details">${this.escapeHtml(item.details)}</div>` : ''}
+                                </div>
+                                <div class="cbm-item-actions">
+                                    <button class="cbm-icon-btn" onclick="CrewBattleMap.editItem('${type}', '${item.id}')" title="Edit">
+                                        ✏️
+                                    </button>
+                                    <button class="cbm-icon-btn delete" onclick="CrewBattleMap.deleteItem('${type}', '${item.id}')" title="Delete">
+                                        🗑️
+                                    </button>
+                                </div>
+                            </div>
+                        `).join('');
+
+                        countEl.textContent = items[type].length;
+                    });
+                },
+
+                renderMap: function() {
+                    const canvas = document.getElementById('mapCanvas');
+                    const placeholder = document.getElementById('mapPlaceholder');
+
+                    // Render map image
+                    let mapImg = canvas.querySelector('.cbm-map-image');
+                    if (mapImage) {
+                        if (!mapImg) {
+                            mapImg = document.createElement('img');
+                            mapImg.className = 'cbm-map-image';
+                            canvas.appendChild(mapImg);
+                        }
+                        mapImg.src = mapImage;
+                        placeholder.style.display = 'none';
+
+                        // Adjust canvas size to image
+                        mapImg.onload = function() {
+                            canvas.style.width = mapImg.naturalWidth + 'px';
+                            canvas.style.height = mapImg.naturalHeight + 'px';
+                        };
+                    } else {
+                        if (mapImg) {
+                            mapImg.remove();
+                        }
+                        placeholder.style.display = 'block';
+                        canvas.style.width = '100%';
+                        canvas.style.height = '100%';
+                    }
+
+                    // Remove old pieces
+                    canvas.querySelectorAll('.cbm-piece').forEach(el => el.remove());
+
+                    // Render pieces
+                    pieces.forEach(piece => {
+                        const item = items[piece.type].find(i => i.id === piece.itemId);
+                        if (!item) return;
+
+                        const pieceEl = document.createElement('div');
+                        pieceEl.className = `cbm-piece ${piece.type}`;
+                        pieceEl.style.left = piece.x + 'px';
+                        pieceEl.style.top = piece.y + 'px';
+                        pieceEl.innerHTML = `
+                            <span class="cbm-piece-icon">${ICONS[piece.type]}</span>
+                            <span>${this.escapeHtml(item.name)}</span>
+                        `;
+                        pieceEl.dataset.pieceId = piece.id;
+
+                        canvas.appendChild(pieceEl);
+                    });
+                },
+
+                attachEvents: function() {
+                    const canvas = document.getElementById('mapCanvas');
+
+                    // Drag from sidebar
+                    document.addEventListener('dragstart', (e) => {
+                        if (e.target.classList.contains('cbm-item')) {
+                            e.dataTransfer.effectAllowed = 'copy';
+                            e.dataTransfer.setData('itemId', e.target.dataset.id);
+                            e.dataTransfer.setData('itemType', e.target.dataset.type);
+                        }
+                    });
+
+                    // Drop on map
+                    canvas.addEventListener('dragover', (e) => {
+                        e.preventDefault();
+                        e.dataTransfer.dropEffect = 'copy';
+                    });
+
+                    canvas.addEventListener('drop', (e) => {
+                        e.preventDefault();
+                        const itemId = e.dataTransfer.getData('itemId');
+                        const itemType = e.dataTransfer.getData('itemType');
+
+                        if (itemId && itemType) {
+                            const rect = canvas.getBoundingClientRect();
+                            const x = e.clientX - rect.left + canvas.parentElement.scrollLeft;
+                            const y = e.clientY - rect.top + canvas.parentElement.scrollTop;
+
+                            this.addPieceToMap(itemType, itemId, x, y);
+                        }
+                    });
+
+                    // Drag pieces on map
+                    canvas.addEventListener('mousedown', (e) => {
+                        if (e.target.closest('.cbm-piece')) {
+                            draggedPiece = e.target.closest('.cbm-piece');
+                            const rect = draggedPiece.getBoundingClientRect();
+                            dragOffset.x = e.clientX - rect.left;
+                            dragOffset.y = e.clientY - rect.top;
+                            draggedPiece.classList.add('dragging');
+                            e.preventDefault();
+                        }
+                    });
+
+                    document.addEventListener('mousemove', (e) => {
+                        if (draggedPiece) {
+                            const canvasRect = canvas.getBoundingClientRect();
+                            const x = e.clientX - canvasRect.left - dragOffset.x + canvas.parentElement.scrollLeft;
+                            const y = e.clientY - canvasRect.top - dragOffset.y + canvas.parentElement.scrollTop;
+
+                            draggedPiece.style.left = x + 'px';
+                            draggedPiece.style.top = y + 'px';
+                        }
+                    });
+
+                    document.addEventListener('mouseup', () => {
+                        if (draggedPiece) {
+                            draggedPiece.classList.remove('dragging');
+                            const pieceId = draggedPiece.dataset.pieceId;
+                            const piece = pieces.find(p => p.id === pieceId);
+                            if (piece) {
+                                piece.x = parseInt(draggedPiece.style.left);
+                                piece.y = parseInt(draggedPiece.style.top);
+                                this.saveState();
+                            }
+                            draggedPiece = null;
+                        }
+                    });
+
+                    // Double-click to remove piece
+                    canvas.addEventListener('dblclick', (e) => {
+                        if (e.target.closest('.cbm-piece')) {
+                            const pieceEl = e.target.closest('.cbm-piece');
+                            const pieceId = pieceEl.dataset.pieceId;
+                            if (confirm('Remove this piece from the map?')) {
+                                pieces = pieces.filter(p => p.id !== pieceId);
+                                this.saveState();
+                                this.render();
+                            }
+                        }
+                    });
+                },
+
+                addPieceToMap: function(type, itemId, x, y) {
+                    const piece = {
+                        id: 'piece_' + Date.now() + '_' + Math.random(),
+                        type: type,
+                        itemId: itemId,
+                        x: Math.round(x),
+                        y: Math.round(y)
+                    };
+                    pieces.push(piece);
+                    this.saveState();
+                    this.render();
+                },
+
+                openAddModal: function(type) {
+                    editingItemId = null;
+                    document.getElementById('modalTitle').textContent = `Add ${type.charAt(0).toUpperCase() + type.slice(1)}`;
+                    document.getElementById('itemType').value = type;
+                    document.getElementById('itemId').value = '';
+                    document.getElementById('itemName').value = '';
+                    document.getElementById('itemDetails').value = '';
+                    document.getElementById('itemModal').classList.add('active');
+                    document.getElementById('itemName').focus();
+                },
+
+                editItem: function(type, id) {
+                    const item = items[type].find(i => i.id === id);
+                    if (!item) return;
+
+                    editingItemId = id;
+                    document.getElementById('modalTitle').textContent = `Edit ${type.charAt(0).toUpperCase() + type.slice(1)}`;
+                    document.getElementById('itemType').value = type;
+                    document.getElementById('itemId').value = id;
+                    document.getElementById('itemName').value = item.name;
+                    document.getElementById('itemDetails').value = item.details || '';
+                    document.getElementById('itemModal').classList.add('active');
+                    document.getElementById('itemName').focus();
+                },
+
+                deleteItem: function(type, id) {
+                    if (!confirm('Delete this item? It will also be removed from the map.')) return;
+
+                    items[type] = items[type].filter(i => i.id !== id);
+                    pieces = pieces.filter(p => !(p.type === type && p.itemId === id));
+                    this.saveState();
+                    this.render();
+                },
+
+                closeModal: function() {
+                    document.getElementById('itemModal').classList.remove('active');
+                    document.getElementById('itemForm').reset();
+                },
+
+                handleFormSubmit: function(e) {
+                    e.preventDefault();
+
+                    const type = document.getElementById('itemType').value;
+                    const id = document.getElementById('itemId').value || 'item_' + Date.now() + '_' + Math.random();
+                    const name = document.getElementById('itemName').value.trim();
+                    const details = document.getElementById('itemDetails').value.trim();
+
+                    if (!name) {
+                        alert('Name is required');
+                        return;
+                    }
+
+                    if (editingItemId) {
+                        // Update existing
+                        const item = items[type].find(i => i.id === id);
+                        if (item) {
+                            item.name = name;
+                            item.details = details;
+                        }
+                    } else {
+                        // Add new
+                        items[type].push({
+                            id: id,
+                            name: name,
+                            details: details
+                        });
+                    }
+
+                    this.saveState();
+                    this.render();
+                    this.closeModal();
+                },
+
+                handleMapUpload: function(e) {
+                    const file = e.target.files[0];
+                    if (!file) return;
+
+                    if (!file.type.startsWith('image/')) {
+                        alert('Please select an image file');
+                        return;
+                    }
+
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        mapImage = event.target.result;
+                        this.saveState();
+                        this.render();
+                    };
+                    reader.readAsDataURL(file);
+                },
+
+                clearMap: function() {
+                    if (!confirm('Clear the map image? Pieces will remain.')) return;
+                    mapImage = null;
+                    localStorage.removeItem(MAP_IMAGE_KEY);
+                    this.render();
+                },
+
+                exportData: function() {
+                    const data = {
+                        items: items,
+                        pieces: pieces,
+                        mapImage: mapImage,
+                        exportDate: new Date().toISOString()
+                    };
+
+                    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `crew-battle-map-${Date.now()}.json`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                },
+
+                importData: function() {
+                    const input = document.createElement('input');
+                    input.type = 'file';
+                    input.accept = '.json';
+                    input.onchange = (e) => {
+                        const file = e.target.files[0];
+                        if (!file) return;
+
+                        const reader = new FileReader();
+                        reader.onload = (event) => {
+                            try {
+                                const data = JSON.parse(event.target.result);
+
+                                if (confirm('This will replace all current data. Continue?')) {
+                                    items = data.items || items;
+                                    pieces = data.pieces || [];
+                                    mapImage = data.mapImage || null;
+                                    this.saveState();
+                                    this.render();
+                                    alert('Data imported successfully!');
+                                }
+                            } catch (e) {
+                                alert('Error importing data: ' + e.message);
+                            }
+                        };
+                        reader.readAsText(file);
+                    };
+                    input.click();
+                },
+
+                clearAll: function() {
+                    if (!confirm('Clear ALL data including items and map? This cannot be undone!')) return;
+
+                    items = { crew: [], truck: [], equipment: [] };
+                    pieces = [];
+                    mapImage = null;
+                    localStorage.removeItem(STORAGE_KEY);
+                    localStorage.removeItem(MAP_IMAGE_KEY);
+                    this.render();
+                },
+
+                updateStats: function() {
+                    const counts = { crew: 0, truck: 0, equipment: 0 };
+                    pieces.forEach(p => counts[p.type]++);
+
+                    document.getElementById('crewMapCount').textContent = counts.crew;
+                    document.getElementById('truckMapCount').textContent = counts.truck;
+                    document.getElementById('equipmentMapCount').textContent = counts.equipment;
+                },
+
+                escapeHtml: function(text) {
+                    const div = document.createElement('div');
+                    div.textContent = text;
+                    return div.innerHTML;
+                }
+            };
+
+            // Initialize on load
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', () => CrewBattleMap.init());
+            } else {
+                CrewBattleMap.init();
+            }
+
+            // Expose to global scope
+            window.CrewBattleMap = CrewBattleMap;
+
+        })(window);
+    </script>
+</body>
+</html>

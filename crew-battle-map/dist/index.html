@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crew Battle Map - Equipment & Personnel Tracker</title>
+    <link rel="stylesheet" href="crew-battle-map.css">
+</head>
+<body>
+    <div class="cbm-container">
+        <!-- Sidebar -->
+        <div class="cbm-sidebar">
+            <div class="cbm-header">
+                <h1>⚡ Crew Battle Map</h1>
+                <p>Track equipment, trucks, and crews</p>
+            </div>
+
+            <div class="cbm-controls">
+                <div class="cbm-btn-group">
+                    <button class="cbm-btn cbm-btn-crew" onclick="CrewBattleMap.openAddModal('crew')">
+                        + Crew
+                    </button>
+                    <button class="cbm-btn cbm-btn-truck" onclick="CrewBattleMap.openAddModal('truck')">
+                        + Truck
+                    </button>
+                    <button class="cbm-btn cbm-btn-equipment" onclick="CrewBattleMap.openAddModal('equipment')">
+                        + Equipment
+                    </button>
+                </div>
+                <div class="cbm-btn-group">
+                    <button class="cbm-btn cbm-btn-success" onclick="CrewBattleMap.exportData()">
+                        📥 Export
+                    </button>
+                    <button class="cbm-btn cbm-btn-primary" onclick="CrewBattleMap.importData()">
+                        📤 Import
+                    </button>
+                    <button class="cbm-btn cbm-btn-danger" onclick="CrewBattleMap.clearAll()">
+                        🗑️ Clear
+                    </button>
+                </div>
+            </div>
+
+            <div class="cbm-items-list" id="itemsList">
+                <h3>👥 Crews (<span id="crewCount">0</span>)</h3>
+                <div id="crewList"></div>
+
+                <h3>🚚 Trucks (<span id="truckCount">0</span>)</h3>
+                <div id="truckList"></div>
+
+                <h3>🔧 Equipment (<span id="equipmentCount">0</span>)</h3>
+                <div id="equipmentList"></div>
+            </div>
+        </div>
+
+        <!-- Map Area -->
+        <div class="cbm-map-area">
+            <div class="cbm-map-toolbar">
+                <div class="cbm-map-toolbar-left">
+                    <button class="cbm-btn cbm-btn-primary" onclick="document.getElementById('mapImageInput').click()">
+                        🗺️ Upload Map
+                    </button>
+                    <button class="cbm-btn cbm-btn-secondary" onclick="CrewBattleMap.clearMap()">
+                        Clear Map
+                    </button>
+                    <input type="file" id="mapImageInput" class="cbm-file-input" accept="image/*" onchange="CrewBattleMap.handleMapUpload(event)">
+                </div>
+                <div class="cbm-stats">
+                    <div class="cbm-stat">
+                        <div class="cbm-stat-badge crew"></div>
+                        <span id="crewMapCount">0</span> crews on map
+                    </div>
+                    <div class="cbm-stat">
+                        <div class="cbm-stat-badge truck"></div>
+                        <span id="truckMapCount">0</span> trucks
+                    </div>
+                    <div class="cbm-stat">
+                        <div class="cbm-stat-badge equipment"></div>
+                        <span id="equipmentMapCount">0</span> equipment
+                    </div>
+                </div>
+            </div>
+
+            <div class="cbm-map-container" id="mapContainer">
+                <div class="cbm-map-canvas" id="mapCanvas">
+                    <div class="cbm-map-placeholder" id="mapPlaceholder">
+                        <h2>📍 No Map Loaded</h2>
+                        <p>Upload a map image to begin placing crews, trucks, and equipment</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Modal -->
+    <div class="cbm-modal" id="itemModal">
+        <div class="cbm-modal-content">
+            <div class="cbm-modal-header">
+                <h2 id="modalTitle">Add Item</h2>
+                <button class="cbm-modal-close" onclick="CrewBattleMap.closeModal()">×</button>
+            </div>
+            <div class="cbm-modal-body">
+                <form id="itemForm" onsubmit="CrewBattleMap.handleFormSubmit(event)">
+                    <input type="hidden" id="itemId">
+                    <input type="hidden" id="itemType">
+
+                    <div class="cbm-form-group">
+                        <label for="itemName">Name *</label>
+                        <input type="text" id="itemName" required placeholder="Enter name">
+                    </div>
+
+                    <div class="cbm-form-group">
+                        <label for="itemDetails">Details</label>
+                        <textarea id="itemDetails" placeholder="Additional information (optional)"></textarea>
+                    </div>
+
+                    <div class="cbm-modal-footer">
+                        <button type="button" class="cbm-btn cbm-btn-secondary" onclick="CrewBattleMap.closeModal()">
+                            Cancel
+                        </button>
+                        <button type="submit" class="cbm-btn cbm-btn-success">
+                            Save
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="crew-battle-map.js"></script>
+</body>
+</html>
