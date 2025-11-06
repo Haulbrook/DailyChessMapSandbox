@@ -5,8 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Crew Battle Map - Equipment & Personnel Tracker</title>
+    <title>Daily Logistics Manager - Jobs, Crews & Equipment Tracker</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
@@ -26,6 +28,10 @@
             --cbm-truck-light: #E59470;
             --cbm-equipment: #7A9B76;
             --cbm-equipment-light: #98B694;
+            --cbm-job: #4A90E2;
+            --cbm-job-light: #6BA8F0;
+            --cbm-vendor: #9B59B6;
+            --cbm-vendor-light: #B07CC6;
             --cbm-bg: #FBF9F4;
             --cbm-card-bg: #FFFFFF;
             --cbm-border: #E8DCC8;
@@ -443,6 +449,16 @@
             color: white;
         }
 
+        .cbm-btn-job {
+            background: var(--cbm-job);
+            color: white;
+        }
+
+        .cbm-btn-vendor {
+            background: var(--cbm-vendor);
+            color: white;
+        }
+
         .cbm-items-list {
             flex: 1;
             overflow-y: auto;
@@ -511,6 +527,14 @@
             border-left-color: var(--cbm-equipment);
         }
 
+        .cbm-item.job {
+            border-left-color: var(--cbm-job);
+        }
+
+        .cbm-item.vendor {
+            border-left-color: var(--cbm-vendor);
+        }
+
         .cbm-item-icon {
             width: 36px;
             height: 36px;
@@ -533,6 +557,14 @@
 
         .cbm-item.equipment .cbm-item-icon {
             background: linear-gradient(135deg, var(--cbm-equipment), var(--cbm-equipment-light));
+        }
+
+        .cbm-item.job .cbm-item-icon {
+            background: linear-gradient(135deg, var(--cbm-job), var(--cbm-job-light));
+        }
+
+        .cbm-item.vendor .cbm-item-icon {
+            background: linear-gradient(135deg, var(--cbm-vendor), var(--cbm-vendor-light));
         }
 
         .cbm-item-content {
@@ -666,62 +698,15 @@
         .cbm-map-container {
             flex: 1;
             position: relative;
-            overflow: auto;
+            overflow: hidden;
             background: #e5e7eb;
             -webkit-overflow-scrolling: touch;
         }
 
-        .cbm-map-canvas {
+        #map {
             width: 100%;
             height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-        }
-
-        .cbm-map-wrapper {
-            position: relative;
-            display: inline-block;
-            transform-origin: center center;
-            transition: transform 0.2s ease-out;
-        }
-
-        .cbm-map-image {
-            display: block;
-            max-width: 100%;
-            max-height: 100%;
-            width: auto;
-            height: auto;
-            object-fit: contain;
-            user-select: none;
-        }
-
-        .cbm-map-placeholder {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            text-align: center;
-            color: var(--cbm-text-lighter);
-            pointer-events: none;
-        }
-
-        .cbm-map-placeholder i {
-            font-size: 64px;
-            margin-bottom: 16px;
-            opacity: 0.3;
-        }
-
-        .cbm-map-placeholder h2 {
-            font-size: 24px;
-            font-weight: 700;
-            margin-bottom: 12px;
-            color: var(--cbm-text-light);
-        }
-
-        .cbm-map-placeholder p {
-            font-size: 14px;
+            z-index: 1;
         }
 
         .cbm-piece {
@@ -1158,9 +1143,9 @@
                     <div class="cbm-header-icon">
                         <i class="fas fa-map-marked-alt"></i>
                     </div>
-                    <h1>Crew Battle Map</h1>
+                    <h1>Daily Logistics</h1>
                 </div>
-                <p>Equipment & Personnel Tracker</p>
+                <p>Jobs, Crews & Equipment Manager</p>
             </div>
 
             <!-- Search & Filter -->
@@ -1174,6 +1159,8 @@
                 </div>
                 <select id="filterType" class="cbm-filter-select" onchange="CrewBattleMap.handleFilter()">
                     <option value="all">All Types</option>
+                    <option value="job">Jobs Only</option>
+                    <option value="vendor">Vendors Only</option>
                     <option value="crew">Crews Only</option>
                     <option value="truck">Trucks Only</option>
                     <option value="equipment">Equipment Only</option>
@@ -1215,6 +1202,14 @@
                         <i class="fas fa-chevron-down cbm-toggle-icon" id="addResourcesIcon"></i>
                     </div>
                     <div class="cbm-controls-content" id="addResourcesContent">
+                        <div class="cbm-btn-group" style="margin-bottom: 10px;">
+                            <button class="cbm-btn cbm-btn-job" onclick="CrewBattleMap.openAddModal('job')">
+                                <i class="fas fa-briefcase"></i> Job
+                            </button>
+                            <button class="cbm-btn cbm-btn-vendor" onclick="CrewBattleMap.openAddModal('vendor')">
+                                <i class="fas fa-store"></i> Vendor
+                            </button>
+                        </div>
                         <div class="cbm-btn-group">
                             <button class="cbm-btn cbm-btn-crew" onclick="CrewBattleMap.openAddModal('crew')">
                                 <i class="fas fa-users"></i> Crew
@@ -1250,6 +1245,12 @@
             </div>
 
             <div class="cbm-items-list" id="itemsList">
+                <h3><i class="fas fa-briefcase"></i> Jobs (<span id="jobCount">0</span>)</h3>
+                <div id="jobList"></div>
+
+                <h3><i class="fas fa-store"></i> Vendors (<span id="vendorCount">0</span>)</h3>
+                <div id="vendorList"></div>
+
                 <h3><i class="fas fa-users"></i> Crews (<span id="crewCount">0</span>)</h3>
                 <div id="crewList"></div>
 
@@ -1265,28 +1266,20 @@
         <div class="cbm-map-area">
             <div class="cbm-map-toolbar">
                 <div class="cbm-map-toolbar-left">
-                    <button class="cbm-btn cbm-btn-primary" onclick="document.getElementById('mapImageInput').click()">
-                        <i class="fas fa-image"></i> Upload Map
+                    <button class="cbm-btn cbm-btn-primary" onclick="CrewBattleMap.searchLocation()">
+                        <i class="fas fa-search-location"></i> Search Location
                     </button>
-                    <button class="cbm-btn cbm-btn-secondary" onclick="CrewBattleMap.clearMap()">
-                        <i class="fas fa-times-circle"></i> Clear Map
-                    </button>
-                    <input type="file" id="mapImageInput" class="cbm-file-input" accept="image/*" onchange="CrewBattleMap.handleMapUpload(event)">
-
-                    <div class="cbm-zoom-controls">
-                        <button class="cbm-zoom-btn" onclick="CrewBattleMap.zoomOut()" title="Zoom Out">
-                            <i class="fas fa-minus"></i>
-                        </button>
-                        <div class="cbm-zoom-level" id="zoomLevel">100%</div>
-                        <button class="cbm-zoom-btn" onclick="CrewBattleMap.zoomIn()" title="Zoom In">
-                            <i class="fas fa-plus"></i>
-                        </button>
-                        <button class="cbm-zoom-btn" onclick="CrewBattleMap.zoomReset()" title="Reset Zoom">
-                            <i class="fas fa-expand"></i>
-                        </button>
-                    </div>
+                    <input type="text" id="locationSearch" placeholder="Search address..." style="padding: 8px 12px; border: 2px solid var(--cbm-border); border-radius: 8px; font-size: 14px; width: 250px; display: none;">
                 </div>
                 <div class="cbm-stats">
+                    <div class="cbm-stat" style="color: var(--cbm-job);">
+                        <i class="fas fa-briefcase"></i>
+                        <span id="jobMapCount">0</span>
+                    </div>
+                    <div class="cbm-stat" style="color: var(--cbm-vendor);">
+                        <i class="fas fa-store"></i>
+                        <span id="vendorMapCount">0</span>
+                    </div>
                     <div class="cbm-stat crew">
                         <i class="fas fa-users"></i>
                         <span id="crewMapCount">0</span>
@@ -1303,14 +1296,7 @@
             </div>
 
             <div class="cbm-map-container" id="mapContainer">
-                <div class="cbm-map-canvas" id="mapCanvas">
-                    <div class="cbm-map-placeholder" id="mapPlaceholder">
-                        <i class="fas fa-map"></i>
-                        <h2>No Map Loaded</h2>
-                        <p>Upload a map image to begin placing resources</p>
-                    </div>
-                    <div class="cbm-map-wrapper" id="mapWrapper" style="display: none;"></div>
-                </div>
+                <div id="map"></div>
             </div>
         </div>
     </div>
@@ -1341,6 +1327,61 @@
                             <i class="fas fa-align-left"></i> Details
                         </label>
                         <textarea id="itemDetails" placeholder="Additional information (optional)"></textarea>
+                    </div>
+
+                    <!-- Job-specific fields -->
+                    <div class="cbm-form-group" id="jobAddressField" style="display: none;">
+                        <label for="jobAddress">
+                            <i class="fas fa-map-marker-alt"></i> Address *
+                        </label>
+                        <input type="text" id="jobAddress" placeholder="Enter job location address">
+                    </div>
+
+                    <div class="cbm-form-group" id="jobDateField" style="display: none;">
+                        <label for="jobDate">
+                            <i class="fas fa-calendar"></i> Date/Time
+                        </label>
+                        <input type="datetime-local" id="jobDate">
+                    </div>
+
+                    <div class="cbm-form-group" id="jobStatusField" style="display: none;">
+                        <label for="jobStatus">
+                            <i class="fas fa-tasks"></i> Status
+                        </label>
+                        <select id="jobStatus">
+                            <option value="scheduled">Scheduled</option>
+                            <option value="in_progress">In Progress</option>
+                            <option value="completed">Completed</option>
+                        </select>
+                    </div>
+
+                    <!-- Vendor-specific fields -->
+                    <div class="cbm-form-group" id="vendorAddressField" style="display: none;">
+                        <label for="vendorAddress">
+                            <i class="fas fa-map-marker-alt"></i> Address *
+                        </label>
+                        <input type="text" id="vendorAddress" placeholder="Enter vendor address">
+                    </div>
+
+                    <div class="cbm-form-group" id="vendorPhoneField" style="display: none;">
+                        <label for="vendorPhone">
+                            <i class="fas fa-phone"></i> Phone
+                        </label>
+                        <input type="tel" id="vendorPhone" placeholder="(555) 123-4567">
+                    </div>
+
+                    <div class="cbm-form-group" id="vendorCategoryField" style="display: none;">
+                        <label for="vendorCategory">
+                            <i class="fas fa-tag"></i> Category
+                        </label>
+                        <select id="vendorCategory">
+                            <option value="">Select category...</option>
+                            <option value="landscape_supply">Landscape Supply</option>
+                            <option value="materials">Materials</option>
+                            <option value="plumbing">Plumbing</option>
+                            <option value="equipment_rental">Equipment Rental</option>
+                            <option value="other">Other</option>
+                        </select>
                     </div>
 
                     <div class="cbm-modal-footer">
@@ -1385,18 +1426,17 @@
 
             // Private state
             let items = {
+                job: [],
+                vendor: [],
                 crew: [],
                 truck: [],
                 equipment: []
             };
 
-            let pieces = [];
-            let mapImage = null;
+            let map = null;
+            let markers = {};
             let editingItemId = null;
-            let draggedPiece = null;
-            let dragOffset = { x: 0, y: 0 };
             let selectedItem = null;
-            let zoomLevel = 1;
             let searchQuery = '';
             let currentFilter = 'all';
             let selectedItemInfo = null;
@@ -1404,24 +1444,33 @@
                 addResources: false,
                 dataManagement: false
             };
-            let pendingTruckDrop = null; // Store truck drop info while selecting driver
+            let pendingTruckDrop = null;
 
-            const STORAGE_KEY = 'crewBattleMapData';
-            const MAP_IMAGE_KEY = 'crewBattleMapImage';
-            const ZOOM_KEY = 'crewBattleMapZoom';
-            const COLLAPSED_KEY = 'crewBattleMapCollapsed';
+            const STORAGE_KEY = 'dailyLogisticsData';
+            const COLLAPSED_KEY = 'dailyLogisticsCollapsed';
+
+            // Default location: Gainesville, GA
+            const DEFAULT_CENTER = [34.2979, -83.8241];
+            const DEFAULT_ZOOM = 11;
 
             // Icons for different types
             const ICONS = {
+                job: '<i class="fas fa-briefcase"></i>',
+                vendor: '<i class="fas fa-store"></i>',
                 crew: '<i class="fas fa-users"></i>',
                 truck: '<i class="fas fa-truck"></i>',
                 equipment: '<i class="fas fa-tools"></i>',
-                combined: '<i class="fas fa-user-tie"></i>' // Combined crew+truck icon
+                combined: '<i class="fas fa-user-tie"></i>'
             };
 
-            // Piece dimensions
-            const PIECE_WIDTH = 36;
-            const PIECE_HEIGHT = 48;
+            // Marker colors
+            const MARKER_COLORS = {
+                job: '#4A90E2',
+                vendor: '#9B59B6',
+                crew: '#FF6B9D',
+                truck: '#D97652',
+                equipment: '#7A9B76'
+            };
 
             // Mobile detection
             const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ||
@@ -1431,9 +1480,10 @@
             const CrewBattleMap = {
                 init: function() {
                     this.loadState();
+                    this.initializeVendors(); // Pre-populate vendors if first time
                     this.applyCollapsedState();
+                    this.initMap();
                     this.render();
-                    this.attachEvents();
 
                     if (isMobile) {
                         setTimeout(() => {
@@ -1446,23 +1496,111 @@
                     }
                 },
 
+                initMap: function() {
+                    // Initialize Leaflet map
+                    map = L.map('map').setView(DEFAULT_CENTER, DEFAULT_ZOOM);
+
+                    // Add OpenStreetMap tiles
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        attribution: '© OpenStreetMap contributors',
+                        maxZoom: 19
+                    }).addTo(map);
+
+                    // Add click handler to add items to map
+                    map.on('click', (e) => {
+                        if (selectedItem) {
+                            this.addItemToMap(selectedItem.type, selectedItem.id, e.latlng);
+                            selectedItem = null;
+                            this.updateMobileHelper(false);
+                            this.render();
+                        }
+                    });
+                },
+
+                initializeVendors: function() {
+                    // Pre-populate vendors on first run
+                    if (items.vendor.length === 0) {
+                        const defaultVendors = [
+                            {
+                                name: 'Stovall',
+                                address: 'Gainesville, GA',
+                                category: 'landscape_supply',
+                                details: 'Landscape supply'
+                            },
+                            {
+                                name: 'SiteOne Landscape Supply',
+                                address: 'Gainesville, GA',
+                                category: 'landscape_supply',
+                                details: 'Professional landscape supplies'
+                            },
+                            {
+                                name: 'City Plumbing',
+                                address: 'Gainesville, GA',
+                                category: 'plumbing',
+                                details: 'Plumbing supplies and fixtures'
+                            },
+                            {
+                                name: 'The Rock Yard',
+                                address: 'Gainesville, GA',
+                                category: 'materials',
+                                details: 'Stone and rock materials'
+                            }
+                        ];
+
+                        defaultVendors.forEach(vendor => {
+                            const id = 'vendor_' + Date.now() + '_' + Math.random();
+                            items.vendor.push({
+                                id: id,
+                                name: vendor.name,
+                                address: vendor.address,
+                                category: vendor.category,
+                                details: vendor.details,
+                                phone: '',
+                                lat: null,
+                                lng: null
+                            });
+
+                            // Geocode the address
+                            this.geocodeAddress(vendor.address, (lat, lng) => {
+                                const item = items.vendor.find(v => v.id === id);
+                                if (item) {
+                                    item.lat = lat;
+                                    item.lng = lng;
+                                    this.saveState();
+                                    this.renderMap();
+                                }
+                            });
+                        });
+
+                        this.saveState();
+                    }
+                },
+
+                geocodeAddress: function(address, callback) {
+                    // Use Nominatim (OpenStreetMap) for free geocoding
+                    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`;
+
+                    fetch(url)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data && data.length > 0) {
+                                callback(parseFloat(data[0].lat), parseFloat(data[0].lon));
+                            } else {
+                                alert(`Could not find location for: ${address}`);
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Geocoding error:', error);
+                            alert('Error finding location. Please try again.');
+                        });
+                },
+
                 loadState: function() {
                     try {
                         const saved = localStorage.getItem(STORAGE_KEY);
                         if (saved) {
                             const data = JSON.parse(saved);
                             items = data.items || items;
-                            pieces = data.pieces || [];
-                        }
-
-                        const savedMap = localStorage.getItem(MAP_IMAGE_KEY);
-                        if (savedMap) {
-                            mapImage = savedMap;
-                        }
-
-                        const savedZoom = localStorage.getItem(ZOOM_KEY);
-                        if (savedZoom) {
-                            zoomLevel = parseFloat(savedZoom);
                         }
 
                         const savedCollapsed = localStorage.getItem(COLLAPSED_KEY);
@@ -1477,16 +1615,9 @@
                 saveState: function() {
                     try {
                         const data = {
-                            items: items,
-                            pieces: pieces
+                            items: items
                         };
                         localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-
-                        if (mapImage) {
-                            localStorage.setItem(MAP_IMAGE_KEY, mapImage);
-                        }
-
-                        localStorage.setItem(ZOOM_KEY, zoomLevel.toString());
                     } catch (e) {
                         console.error('Error saving state:', e);
                         alert('Error saving data. Your browser storage may be full.');
@@ -1497,12 +1628,11 @@
                     this.renderItemsList();
                     this.renderMap();
                     this.updateStats();
-                    this.updateZoomDisplay();
                     this.updateQuickInfo();
                 },
 
                 renderItemsList: function() {
-                    ['crew', 'truck', 'equipment'].forEach(type => {
+                    ['job', 'vendor', 'crew', 'truck', 'equipment'].forEach(type => {
                         const container = document.getElementById(type + 'List');
                         const countEl = document.getElementById(type + 'Count');
 
@@ -1555,76 +1685,122 @@
                 },
 
                 renderMap: function() {
-                    const wrapper = document.getElementById('mapWrapper');
-                    const placeholder = document.getElementById('mapPlaceholder');
+                    if (!map) return;
 
-                    if (mapImage) {
-                        placeholder.style.display = 'none';
-                        wrapper.style.display = 'inline-block';
+                    // Clear existing markers
+                    Object.values(markers).forEach(marker => map.removeLayer(marker));
+                    markers = {};
 
-                        let mapImg = wrapper.querySelector('.cbm-map-image');
-                        if (!mapImg) {
-                            mapImg = document.createElement('img');
-                            mapImg.className = 'cbm-map-image';
-                            mapImg.draggable = false;
-                            wrapper.appendChild(mapImg);
-                        }
-                        mapImg.src = mapImage;
-
-                        // Apply zoom
-                        wrapper.style.transform = `scale(${zoomLevel})`;
-                    } else {
-                        placeholder.style.display = 'block';
-                        wrapper.style.display = 'none';
-                    }
-
-                    // Remove old pieces
-                    wrapper.querySelectorAll('.cbm-piece').forEach(el => el.remove());
-
-                    // Render pieces
-                    pieces.forEach(piece => {
-                        let displayName, displayIcon;
-
-                        if (piece.type === 'combined') {
-                            // Combined crew+truck piece
-                            const crew = items.crew.find(i => i.id === piece.crewId);
-                            const truck = items.truck.find(i => i.id === piece.truckId);
-                            if (!crew || !truck) return;
-
-                            displayName = `${crew.name} / ${truck.name}`;
-                            displayIcon = ICONS.combined;
-                        } else {
-                            // Regular piece
-                            const item = items[piece.type].find(i => i.id === piece.itemId);
-                            if (!item) return;
-
-                            displayName = item.name;
-                            displayIcon = ICONS[piece.type];
-                        }
-
-                        const pieceEl = document.createElement('div');
-                        pieceEl.className = `cbm-piece ${piece.type}`;
-                        pieceEl.style.left = piece.x + 'px';
-                        pieceEl.style.top = piece.y + 'px';
-                        pieceEl.innerHTML = `
-                            <span class="cbm-piece-icon">${displayIcon}</span>
-                        `;
-                        pieceEl.dataset.pieceId = piece.id;
-                        pieceEl.dataset.name = displayName;
-
-                        // Add click handler to select item
-                        pieceEl.addEventListener('click', (e) => {
-                            if (!draggedPiece) { // Only if not dragging
-                                if (piece.type === 'combined') {
-                                    this.selectCombinedItem(piece.crewId, piece.truckId, e);
-                                } else {
-                                    this.selectItem(piece.type, piece.itemId, e);
-                                }
+                    // Add markers for all items with locations
+                    ['job', 'vendor'].forEach(type => {
+                        items[type].forEach(item => {
+                            if (item.lat && item.lng) {
+                                this.addMarker(item, type);
                             }
                         });
-
-                        wrapper.appendChild(pieceEl);
                     });
+                },
+
+                addMarker: function(item, type) {
+                    const icon = L.divIcon({
+                        className: 'custom-marker',
+                        html: `
+                            <div style="
+                                background: ${MARKER_COLORS[type]};
+                                width: 32px;
+                                height: 32px;
+                                border-radius: 50% 50% 50% 0;
+                                transform: rotate(-45deg);
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                border: 3px solid white;
+                                box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+                            ">
+                                <div style="transform: rotate(45deg); color: white; font-size: 14px;">
+                                    ${ICONS[type]}
+                                </div>
+                            </div>
+                        `,
+                        iconSize: [32, 32],
+                        iconAnchor: [16, 32]
+                    });
+
+                    const marker = L.marker([item.lat, item.lng], { icon: icon })
+                        .addTo(map)
+                        .bindPopup(this.createPopupContent(item, type));
+
+                    marker.on('click', () => {
+                        this.selectItem(type, item.id, null);
+                    });
+
+                    markers[item.id] = marker;
+                },
+
+                createPopupContent: function(item, type) {
+                    let content = `<div style="min-width: 200px;">`;
+                    content += `<strong style="font-size: 16px;">${this.escapeHtml(item.name)}</strong><br>`;
+
+                    if (type === 'job') {
+                        if (item.status) {
+                            const statusLabels = {
+                                'scheduled': 'Scheduled',
+                                'in_progress': 'In Progress',
+                                'completed': 'Completed'
+                            };
+                            content += `<div style="margin-top: 8px;"><strong>Status:</strong> ${statusLabels[item.status] || item.status}</div>`;
+                        }
+                        if (item.date) {
+                            content += `<div><strong>Date:</strong> ${new Date(item.date).toLocaleString()}</div>`;
+                        }
+                        if (item.address) {
+                            content += `<div><strong>Address:</strong> ${this.escapeHtml(item.address)}</div>`;
+                        }
+                        if (item.assignedCrews && item.assignedCrews.length > 0) {
+                            content += `<div><strong>Assigned Crews:</strong> ${item.assignedCrews.length}</div>`;
+                        }
+                    } else if (type === 'vendor') {
+                        if (item.category) {
+                            const categoryLabels = {
+                                'landscape_supply': 'Landscape Supply',
+                                'materials': 'Materials',
+                                'plumbing': 'Plumbing',
+                                'equipment_rental': 'Equipment Rental',
+                                'other': 'Other'
+                            };
+                            content += `<div style="margin-top: 8px;"><strong>Category:</strong> ${categoryLabels[item.category] || item.category}</div>`;
+                        }
+                        if (item.phone) {
+                            content += `<div><strong>Phone:</strong> ${this.escapeHtml(item.phone)}</div>`;
+                        }
+                        if (item.address) {
+                            content += `<div><strong>Address:</strong> ${this.escapeHtml(item.address)}</div>`;
+                        }
+                    }
+
+                    if (item.details) {
+                        content += `<div style="margin-top: 8px; font-style: italic;">${this.escapeHtml(item.details)}</div>`;
+                    }
+
+                    content += `</div>`;
+                    return content;
+                },
+
+                addItemToMap: function(type, itemId, latlng) {
+                    const item = items[type].find(i => i.id === itemId);
+                    if (!item) return;
+
+                    // Only jobs and vendors get placed on map
+                    if (type !== 'job' && type !== 'vendor') {
+                        alert('Only jobs and vendors can be placed on the map. Crews, trucks, and equipment are assigned to jobs.');
+                        return;
+                    }
+
+                    item.lat = latlng.lat;
+                    item.lng = latlng.lng;
+
+                    this.saveState();
+                    this.renderMap();
                 },
 
                 handleItemClick: function(type, id, event) {
@@ -1881,6 +2057,8 @@
 
                 openAddModal: function(type) {
                     const typeMap = {
+                        job: { icon: 'briefcase', label: 'Job' },
+                        vendor: { icon: 'store', label: 'Vendor' },
                         crew: { icon: 'users', label: 'Crew' },
                         truck: { icon: 'truck', label: 'Truck' },
                         equipment: { icon: 'tools', label: 'Equipment' }
@@ -1892,6 +2070,21 @@
                     document.getElementById('itemId').value = '';
                     document.getElementById('itemName').value = '';
                     document.getElementById('itemDetails').value = '';
+
+                    // Hide/show type-specific fields
+                    this.toggleModalFields(type);
+
+                    // Clear type-specific fields
+                    if (type === 'job') {
+                        document.getElementById('jobAddress').value = '';
+                        document.getElementById('jobDate').value = '';
+                        document.getElementById('jobStatus').value = 'scheduled';
+                    } else if (type === 'vendor') {
+                        document.getElementById('vendorAddress').value = '';
+                        document.getElementById('vendorPhone').value = '';
+                        document.getElementById('vendorCategory').value = '';
+                    }
+
                     document.getElementById('itemModal').classList.add('active');
                     document.getElementById('itemName').focus();
                 },
@@ -1901,6 +2094,8 @@
                     if (!item) return;
 
                     const typeMap = {
+                        job: 'Job',
+                        vendor: 'Vendor',
                         crew: 'Crew',
                         truck: 'Truck',
                         equipment: 'Equipment'
@@ -1912,15 +2107,56 @@
                     document.getElementById('itemId').value = id;
                     document.getElementById('itemName').value = item.name;
                     document.getElementById('itemDetails').value = item.details || '';
+
+                    // Hide/show type-specific fields
+                    this.toggleModalFields(type);
+
+                    // Populate type-specific fields
+                    if (type === 'job') {
+                        document.getElementById('jobAddress').value = item.address || '';
+                        document.getElementById('jobDate').value = item.date || '';
+                        document.getElementById('jobStatus').value = item.status || 'scheduled';
+                    } else if (type === 'vendor') {
+                        document.getElementById('vendorAddress').value = item.address || '';
+                        document.getElementById('vendorPhone').value = item.phone || '';
+                        document.getElementById('vendorCategory').value = item.category || '';
+                    }
+
                     document.getElementById('itemModal').classList.add('active');
                     document.getElementById('itemName').focus();
+                },
+
+                toggleModalFields: function(type) {
+                    // Hide all type-specific fields
+                    document.getElementById('jobAddressField').style.display = 'none';
+                    document.getElementById('jobDateField').style.display = 'none';
+                    document.getElementById('jobStatusField').style.display = 'none';
+                    document.getElementById('vendorAddressField').style.display = 'none';
+                    document.getElementById('vendorPhoneField').style.display = 'none';
+                    document.getElementById('vendorCategoryField').style.display = 'none';
+
+                    // Show relevant fields
+                    if (type === 'job') {
+                        document.getElementById('jobAddressField').style.display = 'block';
+                        document.getElementById('jobDateField').style.display = 'block';
+                        document.getElementById('jobStatusField').style.display = 'block';
+                    } else if (type === 'vendor') {
+                        document.getElementById('vendorAddressField').style.display = 'block';
+                        document.getElementById('vendorPhoneField').style.display = 'block';
+                        document.getElementById('vendorCategoryField').style.display = 'block';
+                    }
                 },
 
                 deleteItem: function(type, id) {
                     if (!confirm('Delete this item? It will also be removed from the map.')) return;
 
                     items[type] = items[type].filter(i => i.id !== id);
-                    pieces = pieces.filter(p => !(p.type === type && p.itemId === id));
+
+                    // Remove marker if it exists
+                    if (markers[id]) {
+                        map.removeLayer(markers[id]);
+                        delete markers[id];
+                    }
 
                     // Clear selection if deleted item was selected
                     if (selectedItemInfo && selectedItemInfo.type === type && selectedItemInfo.id === id) {
@@ -2204,6 +2440,26 @@
                         return;
                     }
 
+                    // Get type-specific fields
+                    let address = '';
+                    let needsGeocoding = false;
+
+                    if (type === 'job') {
+                        address = document.getElementById('jobAddress').value.trim();
+                        if (!address) {
+                            alert('Address is required for jobs');
+                            return;
+                        }
+                        needsGeocoding = true;
+                    } else if (type === 'vendor') {
+                        address = document.getElementById('vendorAddress').value.trim();
+                        if (!address) {
+                            alert('Address is required for vendors');
+                            return;
+                        }
+                        needsGeocoding = true;
+                    }
+
                     // Check for duplicate names
                     if (!editingItemId) {
                         const duplicateExists = items[type].some(item =>
@@ -2233,13 +2489,77 @@
                         if (item) {
                             item.name = name;
                             item.details = details;
+
+                            // Update type-specific fields
+                            if (type === 'job') {
+                                const oldAddress = item.address;
+                                item.address = address;
+                                item.date = document.getElementById('jobDate').value;
+                                item.status = document.getElementById('jobStatus').value;
+                                item.assignedCrews = item.assignedCrews || [];
+                                item.assignedTrucks = item.assignedTrucks || [];
+
+                                // Geocode if address changed
+                                if (address !== oldAddress) {
+                                    this.geocodeAddress(address, (lat, lng) => {
+                                        item.lat = lat;
+                                        item.lng = lng;
+                                        this.saveState();
+                                        this.renderMap();
+                                    });
+                                }
+                            } else if (type === 'vendor') {
+                                const oldAddress = item.address;
+                                item.address = address;
+                                item.phone = document.getElementById('vendorPhone').value.trim();
+                                item.category = document.getElementById('vendorCategory').value;
+
+                                // Geocode if address changed
+                                if (address !== oldAddress) {
+                                    this.geocodeAddress(address, (lat, lng) => {
+                                        item.lat = lat;
+                                        item.lng = lng;
+                                        this.saveState();
+                                        this.renderMap();
+                                    });
+                                }
+                            }
                         }
                     } else {
-                        items[type].push({
+                        const newItem = {
                             id: id,
                             name: name,
                             details: details
-                        });
+                        };
+
+                        // Add type-specific fields
+                        if (type === 'job') {
+                            newItem.address = address;
+                            newItem.date = document.getElementById('jobDate').value;
+                            newItem.status = document.getElementById('jobStatus').value;
+                            newItem.assignedCrews = [];
+                            newItem.assignedTrucks = [];
+                            newItem.lat = null;
+                            newItem.lng = null;
+                        } else if (type === 'vendor') {
+                            newItem.address = address;
+                            newItem.phone = document.getElementById('vendorPhone').value.trim();
+                            newItem.category = document.getElementById('vendorCategory').value;
+                            newItem.lat = null;
+                            newItem.lng = null;
+                        }
+
+                        items[type].push(newItem);
+
+                        // Geocode the address if needed
+                        if (needsGeocoding && address) {
+                            this.geocodeAddress(address, (lat, lng) => {
+                                newItem.lat = lat;
+                                newItem.lng = lng;
+                                this.saveState();
+                                this.renderMap();
+                            });
+                        }
                     }
 
                     this.saveState();
@@ -2337,12 +2657,110 @@
                 },
 
                 updateStats: function() {
-                    const counts = { crew: 0, truck: 0, equipment: 0 };
-                    pieces.forEach(p => counts[p.type]++);
+                    // Count items with locations on map
+                    const jobsOnMap = items.job.filter(j => j.lat && j.lng).length;
+                    const vendorsOnMap = items.vendor.filter(v => v.lat && v.lng).length;
 
-                    document.getElementById('crewMapCount').textContent = counts.crew;
-                    document.getElementById('truckMapCount').textContent = counts.truck;
-                    document.getElementById('equipmentMapCount').textContent = counts.equipment;
+                    document.getElementById('jobMapCount').textContent = jobsOnMap;
+                    document.getElementById('vendorMapCount').textContent = vendorsOnMap;
+                    document.getElementById('crewMapCount').textContent = items.crew.length;
+                    document.getElementById('truckMapCount').textContent = items.truck.length;
+                    document.getElementById('equipmentMapCount').textContent = items.equipment.length;
+                },
+
+                searchLocation: function() {
+                    const query = prompt('Enter an address or location to search:');
+                    if (!query) return;
+
+                    this.geocodeAddress(query, (lat, lng) => {
+                        map.setView([lat, lng], 14);
+                    });
+                },
+
+                selectItem: function(type, id, event) {
+                    if (event && event.target.closest('.cbm-icon-btn')) {
+                        return; // Don't select if clicking action buttons
+                    }
+
+                    const item = items[type].find(i => i.id === id);
+                    if (!item) return;
+
+                    selectedItemInfo = { type, id, item };
+
+                    // For jobs/vendors with locations, pan to them on map
+                    if ((type === 'job' || type === 'vendor') && item.lat && item.lng) {
+                        map.setView([item.lat, item.lng], 15);
+                        if (markers[id]) {
+                            markers[id].openPopup();
+                        }
+                    }
+
+                    this.updateQuickInfo();
+                    this.render();
+                },
+
+                clearSelection: function() {
+                    selectedItemInfo = null;
+                    document.getElementById('quickInfo').style.display = 'none';
+                    this.render();
+                },
+
+                updateQuickInfo: function() {
+                    const panel = document.getElementById('quickInfo');
+
+                    if (!selectedItemInfo) {
+                        panel.style.display = 'none';
+                        return;
+                    }
+
+                    const { type, item } = selectedItemInfo;
+
+                    document.getElementById('quickInfoIcon').innerHTML = ICONS[type];
+                    document.getElementById('quickInfoName').textContent = item.name;
+
+                    let detailsHtml = '<div style="opacity: 0.9;">';
+
+                    if (type === 'job') {
+                        if (item.status) {
+                            const statusLabels = {
+                                'scheduled': '📅 Scheduled',
+                                'in_progress': '🚧 In Progress',
+                                'completed': '✅ Completed'
+                            };
+                            detailsHtml += `<div><strong>${statusLabels[item.status] || item.status}</strong></div>`;
+                        }
+                        if (item.date) {
+                            detailsHtml += `<div><i class="fas fa-calendar"></i> ${new Date(item.date).toLocaleString()}</div>`;
+                        }
+                        if (item.address) {
+                            detailsHtml += `<div><i class="fas fa-map-marker-alt"></i> ${this.escapeHtml(item.address)}</div>`;
+                        }
+                    } else if (type === 'vendor') {
+                        if (item.category) {
+                            detailsHtml += `<div><i class="fas fa-tag"></i> ${item.category.replace('_', ' ')}</div>`;
+                        }
+                        if (item.phone) {
+                            detailsHtml += `<div><i class="fas fa-phone"></i> ${this.escapeHtml(item.phone)}</div>`;
+                        }
+                        if (item.address) {
+                            detailsHtml += `<div><i class="fas fa-map-marker-alt"></i> ${this.escapeHtml(item.address)}</div>`;
+                        }
+                    }
+
+                    if (item.details) {
+                        detailsHtml += `<div style="margin-top: 8px;"><i class="fas fa-info-circle"></i> ${this.escapeHtml(item.details)}</div>`;
+                    }
+
+                    detailsHtml += '</div>';
+
+                    document.getElementById('quickInfoDetails').innerHTML = detailsHtml;
+
+                    const hasLocation = (type === 'job' || type === 'vendor') && item.lat && item.lng;
+                    document.getElementById('quickInfoLocation').innerHTML = hasLocation ?
+                        '<div style="opacity: 0.9;"><i class="fas fa-map-marker-alt"></i> On map</div>' :
+                        '<div style="opacity: 0.7;"><i class="fas fa-map-marker-alt"></i> Not placed</div>';
+
+                    panel.style.display = 'block';
                 },
 
                 escapeHtml: function(text) {
