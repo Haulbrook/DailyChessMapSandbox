@@ -2180,6 +2180,30 @@
                         return;
                     }
 
+                    // Check for duplicate names
+                    if (!editingItemId) {
+                        const duplicateExists = items[type].some(item =>
+                            item.name.toLowerCase() === name.toLowerCase()
+                        );
+
+                        if (duplicateExists) {
+                            const typeLabel = type.charAt(0).toUpperCase() + type.slice(1);
+                            alert(`A ${typeLabel} with the name "${name}" already exists. Please use a unique name.`);
+                            return;
+                        }
+                    } else {
+                        // Check for duplicate names when editing (exclude current item)
+                        const duplicateExists = items[type].some(item =>
+                            item.id !== id && item.name.toLowerCase() === name.toLowerCase()
+                        );
+
+                        if (duplicateExists) {
+                            const typeLabel = type.charAt(0).toUpperCase() + type.slice(1);
+                            alert(`Another ${typeLabel} already has the name "${name}". Please use a unique name.`);
+                            return;
+                        }
+                    }
+
                     if (editingItemId) {
                         const item = items[type].find(i => i.id === id);
                         if (item) {
