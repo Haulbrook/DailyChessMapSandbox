@@ -333,13 +333,50 @@
             margin-bottom: 0;
         }
 
+        .cbm-controls-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            margin: -8px -12px 10px -12px;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: background 0.2s;
+            user-select: none;
+        }
+
+        .cbm-controls-header:hover {
+            background: var(--cbm-bg);
+        }
+
         .cbm-controls-label {
             font-size: 11px;
             font-weight: 700;
             text-transform: uppercase;
             color: var(--cbm-text-light);
             letter-spacing: 0.08em;
-            margin-bottom: 10px;
+        }
+
+        .cbm-toggle-icon {
+            font-size: 12px;
+            color: var(--cbm-text-lighter);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .cbm-toggle-icon.collapsed {
+            transform: rotate(-90deg);
+        }
+
+        .cbm-controls-content {
+            max-height: 500px;
+            overflow: hidden;
+            transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
+            opacity: 1;
+        }
+
+        .cbm-controls-content.collapsed {
+            max-height: 0;
+            opacity: 0;
         }
 
         .cbm-btn-group {
@@ -1090,31 +1127,41 @@
 
             <div class="cbm-controls">
                 <div class="cbm-controls-section">
-                    <div class="cbm-controls-label">Add Resources</div>
-                    <div class="cbm-btn-group">
-                        <button class="cbm-btn cbm-btn-crew" onclick="CrewBattleMap.openAddModal('crew')">
-                            <i class="fas fa-users"></i> Crew
-                        </button>
-                        <button class="cbm-btn cbm-btn-truck" onclick="CrewBattleMap.openAddModal('truck')">
-                            <i class="fas fa-truck"></i> Truck
-                        </button>
-                        <button class="cbm-btn cbm-btn-equipment" onclick="CrewBattleMap.openAddModal('equipment')">
-                            <i class="fas fa-tools"></i> Equipment
-                        </button>
+                    <div class="cbm-controls-header" onclick="CrewBattleMap.toggleSection('addResources')">
+                        <div class="cbm-controls-label">Add Resources</div>
+                        <i class="fas fa-chevron-down cbm-toggle-icon" id="addResourcesIcon"></i>
+                    </div>
+                    <div class="cbm-controls-content" id="addResourcesContent">
+                        <div class="cbm-btn-group">
+                            <button class="cbm-btn cbm-btn-crew" onclick="CrewBattleMap.openAddModal('crew')">
+                                <i class="fas fa-users"></i> Crew
+                            </button>
+                            <button class="cbm-btn cbm-btn-truck" onclick="CrewBattleMap.openAddModal('truck')">
+                                <i class="fas fa-truck"></i> Truck
+                            </button>
+                            <button class="cbm-btn cbm-btn-equipment" onclick="CrewBattleMap.openAddModal('equipment')">
+                                <i class="fas fa-tools"></i> Equipment
+                            </button>
+                        </div>
                     </div>
                 </div>
                 <div class="cbm-controls-section">
-                    <div class="cbm-controls-label">Data Management</div>
-                    <div class="cbm-btn-group">
-                        <button class="cbm-btn cbm-btn-success" onclick="CrewBattleMap.exportData()">
-                            <i class="fas fa-download"></i> Export
-                        </button>
-                        <button class="cbm-btn cbm-btn-primary" onclick="CrewBattleMap.importData()">
-                            <i class="fas fa-upload"></i> Import
-                        </button>
-                        <button class="cbm-btn cbm-btn-danger" onclick="CrewBattleMap.clearAll()">
-                            <i class="fas fa-trash-alt"></i> Clear
-                        </button>
+                    <div class="cbm-controls-header" onclick="CrewBattleMap.toggleSection('dataManagement')">
+                        <div class="cbm-controls-label">Data Management</div>
+                        <i class="fas fa-chevron-down cbm-toggle-icon" id="dataManagementIcon"></i>
+                    </div>
+                    <div class="cbm-controls-content" id="dataManagementContent">
+                        <div class="cbm-btn-group">
+                            <button class="cbm-btn cbm-btn-success" onclick="CrewBattleMap.exportData()">
+                                <i class="fas fa-download"></i> Export
+                            </button>
+                            <button class="cbm-btn cbm-btn-primary" onclick="CrewBattleMap.importData()">
+                                <i class="fas fa-upload"></i> Import
+                            </button>
+                            <button class="cbm-btn cbm-btn-danger" onclick="CrewBattleMap.clearAll()">
+                                <i class="fas fa-trash-alt"></i> Clear
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1247,10 +1294,15 @@
             let searchQuery = '';
             let currentFilter = 'all';
             let selectedItemInfo = null;
+            let collapsedSections = {
+                addResources: false,
+                dataManagement: false
+            };
 
             const STORAGE_KEY = 'crewBattleMapData';
             const MAP_IMAGE_KEY = 'crewBattleMapImage';
             const ZOOM_KEY = 'crewBattleMapZoom';
+            const COLLAPSED_KEY = 'crewBattleMapCollapsed';
 
             // Icons for different types
             const ICONS = {
@@ -1271,6 +1323,7 @@
             const CrewBattleMap = {
                 init: function() {
                     this.loadState();
+                    this.applyCollapsedState();
                     this.render();
                     this.attachEvents();
 
@@ -1302,6 +1355,11 @@
                         const savedZoom = localStorage.getItem(ZOOM_KEY);
                         if (savedZoom) {
                             zoomLevel = parseFloat(savedZoom);
+                        }
+
+                        const savedCollapsed = localStorage.getItem(COLLAPSED_KEY);
+                        if (savedCollapsed) {
+                            collapsedSections = JSON.parse(savedCollapsed);
                         }
                     } catch (e) {
                         console.error('Error loading state:', e);
@@ -1753,6 +1811,40 @@
                 handleFilter: function() {
                     currentFilter = document.getElementById('filterType').value;
                     this.render();
+                },
+
+                // Collapsible sections
+                toggleSection: function(sectionName) {
+                    collapsedSections[sectionName] = !collapsedSections[sectionName];
+
+                    const content = document.getElementById(sectionName + 'Content');
+                    const icon = document.getElementById(sectionName + 'Icon');
+
+                    if (collapsedSections[sectionName]) {
+                        content.classList.add('collapsed');
+                        icon.classList.add('collapsed');
+                    } else {
+                        content.classList.remove('collapsed');
+                        icon.classList.remove('collapsed');
+                    }
+
+                    // Save state
+                    try {
+                        localStorage.setItem(COLLAPSED_KEY, JSON.stringify(collapsedSections));
+                    } catch (e) {
+                        console.error('Error saving collapsed state:', e);
+                    }
+                },
+
+                applyCollapsedState: function() {
+                    Object.keys(collapsedSections).forEach(sectionName => {
+                        if (collapsedSections[sectionName]) {
+                            const content = document.getElementById(sectionName + 'Content');
+                            const icon = document.getElementById(sectionName + 'Icon');
+                            if (content) content.classList.add('collapsed');
+                            if (icon) icon.classList.add('collapsed');
+                        }
+                    });
                 },
 
                 // Selection methods
