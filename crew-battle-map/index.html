@@ -6,11 +6,11 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Crew Battle Map - Equipment & Personnel Tracker</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
         :root {
-            /* Professional Color Palette */
             --cbm-primary: #1e3a5f;
             --cbm-primary-light: #2c5282;
             --cbm-secondary: #2563eb;
@@ -101,7 +101,7 @@
 
         /* Sidebar */
         .cbm-sidebar {
-            width: 340px;
+            width: 360px;
             background: var(--cbm-card-bg);
             border-right: 1px solid var(--cbm-border);
             display: flex;
@@ -111,54 +111,93 @@
         }
 
         .cbm-header {
-            padding: 24px;
+            padding: 28px 24px;
             background: linear-gradient(135deg, var(--cbm-primary) 0%, var(--cbm-primary-light) 100%);
             color: white;
+            border-bottom: 4px solid var(--cbm-secondary);
+        }
+
+        .cbm-header-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+
+        .cbm-header-icon {
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
         }
 
         .cbm-header h1 {
-            font-size: 22px;
+            font-size: 20px;
             font-weight: 700;
-            margin-bottom: 6px;
-            letter-spacing: -0.01em;
+            letter-spacing: -0.02em;
         }
 
         .cbm-header p {
-            font-size: 14px;
-            opacity: 0.9;
+            font-size: 13px;
+            opacity: 0.85;
             font-weight: 400;
+            margin-left: 52px;
         }
 
         .cbm-controls {
-            padding: 18px;
+            padding: 20px;
             border-bottom: 1px solid var(--cbm-border);
             background: var(--cbm-card-bg);
+        }
+
+        .cbm-controls-section {
+            margin-bottom: 16px;
+        }
+
+        .cbm-controls-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .cbm-controls-label {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: var(--cbm-text-light);
+            letter-spacing: 0.08em;
+            margin-bottom: 10px;
         }
 
         .cbm-btn-group {
             display: flex;
             gap: 10px;
-            margin-bottom: 12px;
         }
 
         .cbm-btn {
             flex: 1;
-            padding: 14px 16px;
+            padding: 12px 14px;
             border: none;
             border-radius: 8px;
-            font-size: 13px;
+            font-size: 12px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 6px;
+            gap: 8px;
             font-family: 'Inter', sans-serif;
             box-shadow: var(--cbm-shadow-sm);
             letter-spacing: -0.01em;
             touch-action: manipulation;
             user-select: none;
+        }
+
+        .cbm-btn i {
+            font-size: 14px;
         }
 
         .cbm-btn:active {
@@ -199,22 +238,29 @@
         .cbm-items-list {
             flex: 1;
             overflow-y: auto;
-            padding: 18px;
+            padding: 20px;
             -webkit-overflow-scrolling: touch;
         }
 
         .cbm-items-list h3 {
-            font-size: 12px;
+            font-size: 11px;
             font-weight: 700;
             text-transform: uppercase;
             color: var(--cbm-text-light);
             margin-bottom: 12px;
-            margin-top: 20px;
-            letter-spacing: 0.05em;
+            margin-top: 24px;
+            letter-spacing: 0.08em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
         .cbm-items-list h3:first-child {
             margin-top: 0;
+        }
+
+        .cbm-items-list h3 i {
+            font-size: 14px;
         }
 
         .cbm-item {
@@ -232,7 +278,7 @@
             border: 1px solid var(--cbm-border);
             touch-action: manipulation;
             user-select: none;
-            min-height: 60px;
+            min-height: 64px;
         }
 
         .cbm-item:active {
@@ -257,14 +303,45 @@
             border-left-color: var(--cbm-equipment);
         }
 
+        .cbm-item-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .cbm-item.crew .cbm-item-icon {
+            background: linear-gradient(135deg, var(--cbm-crew), var(--cbm-crew-light));
+        }
+
+        .cbm-item.truck .cbm-item-icon {
+            background: linear-gradient(135deg, var(--cbm-truck), var(--cbm-truck-light));
+        }
+
+        .cbm-item.equipment .cbm-item-icon {
+            background: linear-gradient(135deg, var(--cbm-equipment), var(--cbm-equipment-light));
+        }
+
+        .cbm-item-content {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+        }
+
         .cbm-item-info {
             flex: 1;
         }
 
         .cbm-item-name {
             font-weight: 600;
-            font-size: 15px;
-            margin-bottom: 4px;
+            font-size: 14px;
+            margin-bottom: 3px;
             color: var(--cbm-text);
         }
 
@@ -276,18 +353,18 @@
 
         .cbm-item-actions {
             display: flex;
-            gap: 8px;
+            gap: 6px;
         }
 
         .cbm-icon-btn {
-            width: 40px;
-            height: 40px;
+            width: 36px;
+            height: 36px;
             border: none;
             border-radius: 6px;
             background: var(--cbm-bg);
             color: var(--cbm-text);
             cursor: pointer;
-            font-size: 16px;
+            font-size: 14px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -313,6 +390,7 @@
             display: flex;
             flex-direction: column;
             overflow: hidden;
+            position: relative;
         }
 
         .cbm-map-toolbar {
@@ -325,16 +403,56 @@
             box-shadow: var(--cbm-shadow-sm);
             flex-wrap: wrap;
             gap: 12px;
+            z-index: 10;
         }
 
         .cbm-map-toolbar-left {
             display: flex;
             gap: 12px;
             align-items: center;
+            flex-wrap: wrap;
         }
 
         .cbm-file-input {
             display: none;
+        }
+
+        .cbm-zoom-controls {
+            display: flex;
+            gap: 6px;
+            background: var(--cbm-bg);
+            padding: 4px;
+            border-radius: 8px;
+        }
+
+        .cbm-zoom-btn {
+            width: 32px;
+            height: 32px;
+            border: none;
+            background: var(--cbm-card-bg);
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            box-shadow: var(--cbm-shadow-sm);
+        }
+
+        .cbm-zoom-btn:hover {
+            background: var(--cbm-secondary);
+            color: white;
+        }
+
+        .cbm-zoom-level {
+            font-size: 11px;
+            color: var(--cbm-text-light);
+            font-weight: 600;
+            min-width: 45px;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .cbm-map-container {
@@ -342,30 +460,32 @@
             position: relative;
             overflow: auto;
             background: #e5e7eb;
-            background-image:
-                linear-gradient(45deg, #d1d5db 25%, transparent 25%),
-                linear-gradient(-45deg, #d1d5db 25%, transparent 25%),
-                linear-gradient(45deg, transparent 75%, #d1d5db 75%),
-                linear-gradient(-45deg, transparent 75%, #d1d5db 75%);
-            background-size: 24px 24px;
-            background-position: 0 0, 0 12px, 12px -12px, -12px 0px;
             -webkit-overflow-scrolling: touch;
-            touch-action: pan-x pan-y;
         }
 
         .cbm-map-canvas {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             position: relative;
-            min-width: 100%;
-            min-height: 100%;
-            touch-action: none;
+        }
+
+        .cbm-map-wrapper {
+            position: relative;
+            display: inline-block;
+            transform-origin: center center;
+            transition: transform 0.2s ease-out;
         }
 
         .cbm-map-image {
-            position: absolute;
-            top: 0;
-            left: 0;
-            max-width: none;
-            pointer-events: none;
+            display: block;
+            max-width: 100%;
+            max-height: 100%;
+            width: auto;
+            height: auto;
+            object-fit: contain;
             user-select: none;
         }
 
@@ -379,22 +499,28 @@
             pointer-events: none;
         }
 
+        .cbm-map-placeholder i {
+            font-size: 64px;
+            margin-bottom: 16px;
+            opacity: 0.3;
+        }
+
         .cbm-map-placeholder h2 {
-            font-size: 26px;
+            font-size: 24px;
             font-weight: 700;
             margin-bottom: 12px;
             color: var(--cbm-text-light);
         }
 
         .cbm-map-placeholder p {
-            font-size: 15px;
+            font-size: 14px;
         }
 
         .cbm-piece {
             position: absolute;
-            padding: 12px 18px;
-            border-radius: 10px;
-            font-size: 14px;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 13px;
             font-weight: 600;
             color: white;
             cursor: move;
@@ -404,8 +530,7 @@
             align-items: center;
             gap: 8px;
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            min-width: 110px;
-            min-height: 44px;
+            min-width: 100px;
             backdrop-filter: blur(8px);
             letter-spacing: -0.01em;
             touch-action: none;
@@ -431,7 +556,7 @@
         }
 
         .cbm-piece-icon {
-            font-size: 20px;
+            font-size: 16px;
             filter: drop-shadow(0 1px 2px rgba(0,0,0,0.1));
         }
 
@@ -494,19 +619,25 @@
             font-size: 20px;
             font-weight: 700;
             letter-spacing: -0.01em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
         .cbm-modal-close {
-            width: 44px;
-            height: 44px;
+            width: 36px;
+            height: 36px;
             border: none;
             background: var(--cbm-bg);
-            font-size: 24px;
+            font-size: 18px;
             cursor: pointer;
             color: var(--cbm-text-light);
             border-radius: 8px;
             transition: all 0.2s;
             touch-action: manipulation;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .cbm-modal-close:active {
@@ -526,18 +657,26 @@
             display: block;
             font-weight: 600;
             margin-bottom: 8px;
-            font-size: 14px;
+            font-size: 13px;
             color: var(--cbm-text);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .cbm-form-group label i {
+            font-size: 12px;
+            color: var(--cbm-text-light);
         }
 
         .cbm-form-group input,
         .cbm-form-group select,
         .cbm-form-group textarea {
             width: 100%;
-            padding: 14px;
+            padding: 12px 14px;
             border: 1px solid var(--cbm-border);
             border-radius: 8px;
-            font-size: 16px;
+            font-size: 14px;
             font-family: 'Inter', sans-serif;
             transition: all 0.2s;
             background: var(--cbm-card-bg);
@@ -545,7 +684,7 @@
 
         .cbm-form-group textarea {
             resize: vertical;
-            min-height: 100px;
+            min-height: 90px;
         }
 
         .cbm-form-group input:focus,
@@ -574,8 +713,8 @@
         /* Stats */
         .cbm-stats {
             display: flex;
-            gap: 16px;
-            font-size: 13px;
+            gap: 20px;
+            font-size: 12px;
             color: var(--cbm-text-light);
             font-weight: 500;
         }
@@ -586,16 +725,13 @@
             gap: 6px;
         }
 
-        .cbm-stat-badge {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            box-shadow: var(--cbm-shadow-sm);
+        .cbm-stat i {
+            font-size: 14px;
         }
 
-        .cbm-stat-badge.crew { background: var(--cbm-crew); }
-        .cbm-stat-badge.truck { background: var(--cbm-truck); }
-        .cbm-stat-badge.equipment { background: var(--cbm-equipment); }
+        .cbm-stat.crew i { color: var(--cbm-crew); }
+        .cbm-stat.truck i { color: var(--cbm-truck); }
+        .cbm-stat.equipment i { color: var(--cbm-equipment); }
 
         /* Responsive */
         @media (max-width: 768px) {
@@ -611,7 +747,7 @@
             }
 
             .cbm-header {
-                padding: 16px;
+                padding: 16px 20px;
             }
 
             .cbm-header h1 {
@@ -619,24 +755,24 @@
             }
 
             .cbm-header p {
-                font-size: 13px;
+                font-size: 12px;
             }
 
             .cbm-controls {
-                padding: 12px;
+                padding: 16px;
             }
 
             .cbm-items-list {
-                padding: 12px;
+                padding: 16px;
             }
 
             .cbm-map-toolbar {
-                padding: 12px;
+                padding: 12px 16px;
             }
 
             .cbm-stats {
                 font-size: 11px;
-                gap: 8px;
+                gap: 12px;
             }
 
             .cbm-btn-group {
@@ -644,8 +780,8 @@
             }
 
             .cbm-btn {
-                padding: 12px 12px;
-                font-size: 12px;
+                padding: 10px 12px;
+                font-size: 11px;
             }
         }
 
@@ -672,50 +808,61 @@
 <body>
     <!-- Mobile Helper -->
     <div class="cbm-mobile-helper" id="mobileHelper">
-        Tap an item, then tap the map to place
+        <i class="fas fa-hand-pointer"></i> Tap an item, then tap the map to place
     </div>
 
     <div class="cbm-container">
         <!-- Sidebar -->
         <div class="cbm-sidebar">
             <div class="cbm-header">
-                <h1>⚡ Crew Battle Map</h1>
-                <p>Track equipment, trucks, and crews</p>
+                <div class="cbm-header-brand">
+                    <div class="cbm-header-icon">
+                        <i class="fas fa-map-marked-alt"></i>
+                    </div>
+                    <h1>Crew Battle Map</h1>
+                </div>
+                <p>Equipment & Personnel Tracker</p>
             </div>
 
             <div class="cbm-controls">
-                <div class="cbm-btn-group">
-                    <button class="cbm-btn cbm-btn-crew" onclick="CrewBattleMap.openAddModal('crew')">
-                        + Crew
-                    </button>
-                    <button class="cbm-btn cbm-btn-truck" onclick="CrewBattleMap.openAddModal('truck')">
-                        + Truck
-                    </button>
-                    <button class="cbm-btn cbm-btn-equipment" onclick="CrewBattleMap.openAddModal('equipment')">
-                        + Equipment
-                    </button>
+                <div class="cbm-controls-section">
+                    <div class="cbm-controls-label">Add Resources</div>
+                    <div class="cbm-btn-group">
+                        <button class="cbm-btn cbm-btn-crew" onclick="CrewBattleMap.openAddModal('crew')">
+                            <i class="fas fa-users"></i> Crew
+                        </button>
+                        <button class="cbm-btn cbm-btn-truck" onclick="CrewBattleMap.openAddModal('truck')">
+                            <i class="fas fa-truck"></i> Truck
+                        </button>
+                        <button class="cbm-btn cbm-btn-equipment" onclick="CrewBattleMap.openAddModal('equipment')">
+                            <i class="fas fa-tools"></i> Equipment
+                        </button>
+                    </div>
                 </div>
-                <div class="cbm-btn-group">
-                    <button class="cbm-btn cbm-btn-success" onclick="CrewBattleMap.exportData()">
-                        📥 Export
-                    </button>
-                    <button class="cbm-btn cbm-btn-primary" onclick="CrewBattleMap.importData()">
-                        📤 Import
-                    </button>
-                    <button class="cbm-btn cbm-btn-danger" onclick="CrewBattleMap.clearAll()">
-                        🗑️ Clear
-                    </button>
+                <div class="cbm-controls-section">
+                    <div class="cbm-controls-label">Data Management</div>
+                    <div class="cbm-btn-group">
+                        <button class="cbm-btn cbm-btn-success" onclick="CrewBattleMap.exportData()">
+                            <i class="fas fa-download"></i> Export
+                        </button>
+                        <button class="cbm-btn cbm-btn-primary" onclick="CrewBattleMap.importData()">
+                            <i class="fas fa-upload"></i> Import
+                        </button>
+                        <button class="cbm-btn cbm-btn-danger" onclick="CrewBattleMap.clearAll()">
+                            <i class="fas fa-trash-alt"></i> Clear
+                        </button>
+                    </div>
                 </div>
             </div>
 
             <div class="cbm-items-list" id="itemsList">
-                <h3>👥 Crews (<span id="crewCount">0</span>)</h3>
+                <h3><i class="fas fa-users"></i> Crews (<span id="crewCount">0</span>)</h3>
                 <div id="crewList"></div>
 
-                <h3>🚚 Trucks (<span id="truckCount">0</span>)</h3>
+                <h3><i class="fas fa-truck"></i> Trucks (<span id="truckCount">0</span>)</h3>
                 <div id="truckList"></div>
 
-                <h3>🔧 Equipment (<span id="equipmentCount">0</span>)</h3>
+                <h3><i class="fas fa-tools"></i> Equipment (<span id="equipmentCount">0</span>)</h3>
                 <div id="equipmentList"></div>
             </div>
         </div>
@@ -725,25 +872,38 @@
             <div class="cbm-map-toolbar">
                 <div class="cbm-map-toolbar-left">
                     <button class="cbm-btn cbm-btn-primary" onclick="document.getElementById('mapImageInput').click()">
-                        🗺️ Upload Map
+                        <i class="fas fa-image"></i> Upload Map
                     </button>
                     <button class="cbm-btn cbm-btn-secondary" onclick="CrewBattleMap.clearMap()">
-                        Clear Map
+                        <i class="fas fa-times-circle"></i> Clear Map
                     </button>
                     <input type="file" id="mapImageInput" class="cbm-file-input" accept="image/*" onchange="CrewBattleMap.handleMapUpload(event)">
+
+                    <div class="cbm-zoom-controls">
+                        <button class="cbm-zoom-btn" onclick="CrewBattleMap.zoomOut()" title="Zoom Out">
+                            <i class="fas fa-minus"></i>
+                        </button>
+                        <div class="cbm-zoom-level" id="zoomLevel">100%</div>
+                        <button class="cbm-zoom-btn" onclick="CrewBattleMap.zoomIn()" title="Zoom In">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                        <button class="cbm-zoom-btn" onclick="CrewBattleMap.zoomReset()" title="Reset Zoom">
+                            <i class="fas fa-expand"></i>
+                        </button>
+                    </div>
                 </div>
                 <div class="cbm-stats">
-                    <div class="cbm-stat">
-                        <div class="cbm-stat-badge crew"></div>
-                        <span id="crewMapCount">0</span> crews
+                    <div class="cbm-stat crew">
+                        <i class="fas fa-users"></i>
+                        <span id="crewMapCount">0</span>
                     </div>
-                    <div class="cbm-stat">
-                        <div class="cbm-stat-badge truck"></div>
-                        <span id="truckMapCount">0</span> trucks
+                    <div class="cbm-stat truck">
+                        <i class="fas fa-truck"></i>
+                        <span id="truckMapCount">0</span>
                     </div>
-                    <div class="cbm-stat">
-                        <div class="cbm-stat-badge equipment"></div>
-                        <span id="equipmentMapCount">0</span> equipment
+                    <div class="cbm-stat equipment">
+                        <i class="fas fa-tools"></i>
+                        <span id="equipmentMapCount">0</span>
                     </div>
                 </div>
             </div>
@@ -751,9 +911,11 @@
             <div class="cbm-map-container" id="mapContainer">
                 <div class="cbm-map-canvas" id="mapCanvas">
                     <div class="cbm-map-placeholder" id="mapPlaceholder">
-                        <h2>📍 No Map Loaded</h2>
-                        <p>Upload a map image to begin placing crews, trucks, and equipment</p>
+                        <i class="fas fa-map"></i>
+                        <h2>No Map Loaded</h2>
+                        <p>Upload a map image to begin placing resources</p>
                     </div>
+                    <div class="cbm-map-wrapper" id="mapWrapper" style="display: none;"></div>
                 </div>
             </div>
         </div>
@@ -763,8 +925,10 @@
     <div class="cbm-modal" id="itemModal">
         <div class="cbm-modal-content">
             <div class="cbm-modal-header">
-                <h2 id="modalTitle">Add Item</h2>
-                <button class="cbm-modal-close" onclick="CrewBattleMap.closeModal()">×</button>
+                <h2 id="modalTitle"><i class="fas fa-plus-circle"></i> Add Item</h2>
+                <button class="cbm-modal-close" onclick="CrewBattleMap.closeModal()">
+                    <i class="fas fa-times"></i>
+                </button>
             </div>
             <div class="cbm-modal-body">
                 <form id="itemForm" onsubmit="CrewBattleMap.handleFormSubmit(event)">
@@ -772,21 +936,25 @@
                     <input type="hidden" id="itemType">
 
                     <div class="cbm-form-group">
-                        <label for="itemName">Name *</label>
+                        <label for="itemName">
+                            <i class="fas fa-tag"></i> Name *
+                        </label>
                         <input type="text" id="itemName" required placeholder="Enter name">
                     </div>
 
                     <div class="cbm-form-group">
-                        <label for="itemDetails">Details</label>
+                        <label for="itemDetails">
+                            <i class="fas fa-align-left"></i> Details
+                        </label>
                         <textarea id="itemDetails" placeholder="Additional information (optional)"></textarea>
                     </div>
 
                     <div class="cbm-modal-footer">
                         <button type="button" class="cbm-btn cbm-btn-secondary" onclick="CrewBattleMap.closeModal()">
-                            Cancel
+                            <i class="fas fa-times"></i> Cancel
                         </button>
                         <button type="submit" class="cbm-btn cbm-btn-success">
-                            Save
+                            <i class="fas fa-check"></i> Save
                         </button>
                     </div>
                 </form>
@@ -810,23 +978,25 @@
             let editingItemId = null;
             let draggedPiece = null;
             let dragOffset = { x: 0, y: 0 };
-            let selectedItem = null; // For mobile tap-to-place
+            let selectedItem = null;
+            let zoomLevel = 1;
 
             const STORAGE_KEY = 'crewBattleMapData';
             const MAP_IMAGE_KEY = 'crewBattleMapImage';
+            const ZOOM_KEY = 'crewBattleMapZoom';
 
             // Icons for different types
             const ICONS = {
-                crew: '👥',
-                truck: '🚚',
-                equipment: '🔧'
+                crew: '<i class="fas fa-users"></i>',
+                truck: '<i class="fas fa-truck"></i>',
+                equipment: '<i class="fas fa-tools"></i>'
             };
 
-            // Approximate piece dimensions for centering
-            const PIECE_WIDTH = 110;
-            const PIECE_HEIGHT = 44;
+            // Piece dimensions
+            const PIECE_WIDTH = 100;
+            const PIECE_HEIGHT = 40;
 
-            // Detect if mobile
+            // Mobile detection
             const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ||
                             (navigator.maxTouchPoints && navigator.maxTouchPoints > 2);
 
@@ -837,7 +1007,6 @@
                     this.render();
                     this.attachEvents();
 
-                    // Show mobile helper on touch devices
                     if (isMobile) {
                         setTimeout(() => {
                             const helper = document.getElementById('mobileHelper');
@@ -862,6 +1031,11 @@
                         if (savedMap) {
                             mapImage = savedMap;
                         }
+
+                        const savedZoom = localStorage.getItem(ZOOM_KEY);
+                        if (savedZoom) {
+                            zoomLevel = parseFloat(savedZoom);
+                        }
                     } catch (e) {
                         console.error('Error loading state:', e);
                     }
@@ -878,6 +1052,8 @@
                         if (mapImage) {
                             localStorage.setItem(MAP_IMAGE_KEY, mapImage);
                         }
+
+                        localStorage.setItem(ZOOM_KEY, zoomLevel.toString());
                     } catch (e) {
                         console.error('Error saving state:', e);
                         alert('Error saving data. Your browser storage may be full.');
@@ -888,6 +1064,7 @@
                     this.renderItemsList();
                     this.renderMap();
                     this.updateStats();
+                    this.updateZoomDisplay();
                 },
 
                 renderItemsList: function() {
@@ -903,16 +1080,19 @@
                                      data-type="${type}"
                                      draggable="true"
                                      onclick="CrewBattleMap.handleItemClick('${type}', '${item.id}', event)">
-                                    <div class="cbm-item-info">
-                                        <div class="cbm-item-name">${ICONS[type]} ${this.escapeHtml(item.name)}</div>
-                                        ${item.details ? `<div class="cbm-item-details">${this.escapeHtml(item.details)}</div>` : ''}
+                                    <div class="cbm-item-content">
+                                        <div class="cbm-item-icon">${ICONS[type]}</div>
+                                        <div class="cbm-item-info">
+                                            <div class="cbm-item-name">${this.escapeHtml(item.name)}</div>
+                                            ${item.details ? `<div class="cbm-item-details">${this.escapeHtml(item.details)}</div>` : ''}
+                                        </div>
                                     </div>
                                     <div class="cbm-item-actions">
                                         <button class="cbm-icon-btn" onclick="event.stopPropagation(); CrewBattleMap.editItem('${type}', '${item.id}')" title="Edit">
-                                            ✏️
+                                            <i class="fas fa-edit"></i>
                                         </button>
                                         <button class="cbm-icon-btn delete" onclick="event.stopPropagation(); CrewBattleMap.deleteItem('${type}', '${item.id}')" title="Delete">
-                                            🗑️
+                                            <i class="fas fa-trash"></i>
                                         </button>
                                     </div>
                                 </div>
@@ -924,36 +1104,31 @@
                 },
 
                 renderMap: function() {
-                    const canvas = document.getElementById('mapCanvas');
+                    const wrapper = document.getElementById('mapWrapper');
                     const placeholder = document.getElementById('mapPlaceholder');
 
-                    // Render map image
-                    let mapImg = canvas.querySelector('.cbm-map-image');
                     if (mapImage) {
+                        placeholder.style.display = 'none';
+                        wrapper.style.display = 'inline-block';
+
+                        let mapImg = wrapper.querySelector('.cbm-map-image');
                         if (!mapImg) {
                             mapImg = document.createElement('img');
                             mapImg.className = 'cbm-map-image';
-                            canvas.appendChild(mapImg);
+                            mapImg.draggable = false;
+                            wrapper.appendChild(mapImg);
                         }
                         mapImg.src = mapImage;
-                        placeholder.style.display = 'none';
 
-                        // Adjust canvas size to image
-                        mapImg.onload = function() {
-                            canvas.style.width = mapImg.naturalWidth + 'px';
-                            canvas.style.height = mapImg.naturalHeight + 'px';
-                        };
+                        // Apply zoom
+                        wrapper.style.transform = `scale(${zoomLevel})`;
                     } else {
-                        if (mapImg) {
-                            mapImg.remove();
-                        }
                         placeholder.style.display = 'block';
-                        canvas.style.width = '100%';
-                        canvas.style.height = '100%';
+                        wrapper.style.display = 'none';
                     }
 
                     // Remove old pieces
-                    canvas.querySelectorAll('.cbm-piece').forEach(el => el.remove());
+                    wrapper.querySelectorAll('.cbm-piece').forEach(el => el.remove());
 
                     // Render pieces
                     pieces.forEach(piece => {
@@ -970,17 +1145,15 @@
                         `;
                         pieceEl.dataset.pieceId = piece.id;
 
-                        canvas.appendChild(pieceEl);
+                        wrapper.appendChild(pieceEl);
                     });
                 },
 
                 handleItemClick: function(type, id, event) {
-                    // If clicked on action buttons, ignore
                     if (event.target.closest('.cbm-icon-btn')) {
                         return;
                     }
 
-                    // Toggle selection
                     if (selectedItem && selectedItem.id === id && selectedItem.type === type) {
                         selectedItem = null;
                         this.updateMobileHelper(false);
@@ -996,17 +1169,39 @@
 
                     const helper = document.getElementById('mobileHelper');
                     if (selected) {
-                        helper.textContent = 'Tap the map to place item';
+                        helper.innerHTML = '<i class="fas fa-hand-pointer"></i> Tap the map to place item';
                         helper.classList.add('active', 'selected');
                     } else {
-                        helper.textContent = 'Tap an item, then tap the map to place';
+                        helper.innerHTML = '<i class="fas fa-hand-pointer"></i> Tap an item, then tap the map to place';
                         helper.classList.remove('selected');
                     }
                 },
 
+                zoomIn: function() {
+                    zoomLevel = Math.min(zoomLevel + 0.25, 3);
+                    this.saveState();
+                    this.render();
+                },
+
+                zoomOut: function() {
+                    zoomLevel = Math.max(zoomLevel - 0.25, 0.5);
+                    this.saveState();
+                    this.render();
+                },
+
+                zoomReset: function() {
+                    zoomLevel = 1;
+                    this.saveState();
+                    this.render();
+                },
+
+                updateZoomDisplay: function() {
+                    document.getElementById('zoomLevel').textContent = Math.round(zoomLevel * 100) + '%';
+                },
+
                 attachEvents: function() {
+                    const wrapper = document.getElementById('mapWrapper');
                     const canvas = document.getElementById('mapCanvas');
-                    const container = canvas.parentElement;
 
                     // Desktop: Drag from sidebar
                     document.addEventListener('dragstart', (e) => {
@@ -1018,20 +1213,20 @@
                     });
 
                     // Desktop: Drop on map
-                    canvas.addEventListener('dragover', (e) => {
+                    wrapper.addEventListener('dragover', (e) => {
                         e.preventDefault();
                         e.dataTransfer.dropEffect = 'copy';
                     });
 
-                    canvas.addEventListener('drop', (e) => {
+                    wrapper.addEventListener('drop', (e) => {
                         e.preventDefault();
                         const itemId = e.dataTransfer.getData('itemId');
                         const itemType = e.dataTransfer.getData('itemType');
 
                         if (itemId && itemType) {
-                            const rect = canvas.getBoundingClientRect();
-                            const x = e.clientX - rect.left + container.scrollLeft - (PIECE_WIDTH / 2);
-                            const y = e.clientY - rect.top + container.scrollTop - (PIECE_HEIGHT / 2);
+                            const rect = wrapper.getBoundingClientRect();
+                            const x = (e.clientX - rect.left) / zoomLevel - (PIECE_WIDTH / 2);
+                            const y = (e.clientY - rect.top) / zoomLevel - (PIECE_HEIGHT / 2);
 
                             this.addPieceToMap(itemType, itemId, Math.max(0, x), Math.max(0, y));
                         }
@@ -1039,15 +1234,17 @@
 
                     // Mobile/Touch: Tap to place
                     canvas.addEventListener('click', (e) => {
-                        if (selectedItem && !e.target.closest('.cbm-piece')) {
-                            const rect = canvas.getBoundingClientRect();
-                            const x = e.clientX - rect.left + container.scrollLeft - (PIECE_WIDTH / 2);
-                            const y = e.clientY - rect.top + container.scrollTop - (PIECE_HEIGHT / 2);
+                        if (selectedItem && wrapper.style.display !== 'none') {
+                            const rect = wrapper.getBoundingClientRect();
+                            const x = (e.clientX - rect.left) / zoomLevel - (PIECE_WIDTH / 2);
+                            const y = (e.clientY - rect.top) / zoomLevel - (PIECE_HEIGHT / 2);
 
-                            this.addPieceToMap(selectedItem.type, selectedItem.id, Math.max(0, x), Math.max(0, y));
-                            selectedItem = null;
-                            this.updateMobileHelper(false);
-                            this.render();
+                            if (x >= 0 && y >= 0) {
+                                this.addPieceToMap(selectedItem.type, selectedItem.id, x, y);
+                                selectedItem = null;
+                                this.updateMobileHelper(false);
+                                this.render();
+                            }
                         }
                     });
 
@@ -1056,15 +1253,15 @@
                     let touchStartX = 0;
                     let touchStartY = 0;
 
-                    canvas.addEventListener('touchstart', (e) => {
+                    wrapper.addEventListener('touchstart', (e) => {
                         const piece = e.target.closest('.cbm-piece');
                         if (piece) {
                             e.preventDefault();
                             touchPiece = piece;
                             const touch = e.touches[0];
                             const rect = piece.getBoundingClientRect();
-                            touchStartX = touch.clientX - rect.left;
-                            touchStartY = touch.clientY - rect.top;
+                            touchStartX = (touch.clientX - rect.left) / zoomLevel;
+                            touchStartY = (touch.clientY - rect.top) / zoomLevel;
                             piece.classList.add('dragging');
                         }
                     }, { passive: false });
@@ -1073,9 +1270,9 @@
                         if (touchPiece) {
                             e.preventDefault();
                             const touch = e.touches[0];
-                            const canvasRect = canvas.getBoundingClientRect();
-                            const x = touch.clientX - canvasRect.left - touchStartX + container.scrollLeft;
-                            const y = touch.clientY - canvasRect.top - touchStartY + container.scrollTop;
+                            const wrapperRect = wrapper.getBoundingClientRect();
+                            const x = (touch.clientX - wrapperRect.left) / zoomLevel - touchStartX;
+                            const y = (touch.clientY - wrapperRect.top) / zoomLevel - touchStartY;
 
                             touchPiece.style.left = Math.max(0, x) + 'px';
                             touchPiece.style.top = Math.max(0, y) + 'px';
@@ -1097,12 +1294,12 @@
                     });
 
                     // Mouse events for desktop dragging pieces
-                    canvas.addEventListener('mousedown', (e) => {
+                    wrapper.addEventListener('mousedown', (e) => {
                         if (e.target.closest('.cbm-piece') && !isMobile) {
                             draggedPiece = e.target.closest('.cbm-piece');
                             const rect = draggedPiece.getBoundingClientRect();
-                            dragOffset.x = e.clientX - rect.left;
-                            dragOffset.y = e.clientY - rect.top;
+                            dragOffset.x = (e.clientX - rect.left) / zoomLevel;
+                            dragOffset.y = (e.clientY - rect.top) / zoomLevel;
                             draggedPiece.classList.add('dragging');
                             e.preventDefault();
                         }
@@ -1110,9 +1307,9 @@
 
                     document.addEventListener('mousemove', (e) => {
                         if (draggedPiece) {
-                            const canvasRect = canvas.getBoundingClientRect();
-                            const x = e.clientX - canvasRect.left - dragOffset.x + container.scrollLeft;
-                            const y = e.clientY - canvasRect.top - dragOffset.y + container.scrollTop;
+                            const wrapperRect = wrapper.getBoundingClientRect();
+                            const x = (e.clientX - wrapperRect.left) / zoomLevel - dragOffset.x;
+                            const y = (e.clientY - wrapperRect.top) / zoomLevel - dragOffset.y;
 
                             draggedPiece.style.left = Math.max(0, x) + 'px';
                             draggedPiece.style.top = Math.max(0, y) + 'px';
@@ -1135,7 +1332,7 @@
 
                     // Long-press to remove piece (mobile)
                     let longPressTimer = null;
-                    canvas.addEventListener('touchstart', (e) => {
+                    wrapper.addEventListener('touchstart', (e) => {
                         const piece = e.target.closest('.cbm-piece');
                         if (piece) {
                             longPressTimer = setTimeout(() => {
@@ -1149,14 +1346,14 @@
                         }
                     });
 
-                    canvas.addEventListener('touchend', () => {
+                    wrapper.addEventListener('touchend', () => {
                         if (longPressTimer) {
                             clearTimeout(longPressTimer);
                             longPressTimer = null;
                         }
                     });
 
-                    canvas.addEventListener('touchmove', () => {
+                    wrapper.addEventListener('touchmove', () => {
                         if (longPressTimer) {
                             clearTimeout(longPressTimer);
                             longPressTimer = null;
@@ -1164,7 +1361,7 @@
                     });
 
                     // Double-click to remove piece (desktop)
-                    canvas.addEventListener('dblclick', (e) => {
+                    wrapper.addEventListener('dblclick', (e) => {
                         if (e.target.closest('.cbm-piece') && !isMobile) {
                             const pieceEl = e.target.closest('.cbm-piece');
                             const pieceId = pieceEl.dataset.pieceId;
@@ -1191,8 +1388,14 @@
                 },
 
                 openAddModal: function(type) {
+                    const typeMap = {
+                        crew: { icon: 'users', label: 'Crew' },
+                        truck: { icon: 'truck', label: 'Truck' },
+                        equipment: { icon: 'tools', label: 'Equipment' }
+                    };
+
                     editingItemId = null;
-                    document.getElementById('modalTitle').textContent = `Add ${type.charAt(0).toUpperCase() + type.slice(1)}`;
+                    document.getElementById('modalTitle').innerHTML = `<i class="fas fa-plus-circle"></i> Add ${typeMap[type].label}`;
                     document.getElementById('itemType').value = type;
                     document.getElementById('itemId').value = '';
                     document.getElementById('itemName').value = '';
@@ -1205,8 +1408,14 @@
                     const item = items[type].find(i => i.id === id);
                     if (!item) return;
 
+                    const typeMap = {
+                        crew: 'Crew',
+                        truck: 'Truck',
+                        equipment: 'Equipment'
+                    };
+
                     editingItemId = id;
-                    document.getElementById('modalTitle').textContent = `Edit ${type.charAt(0).toUpperCase() + type.slice(1)}`;
+                    document.getElementById('modalTitle').innerHTML = `<i class="fas fa-edit"></i> Edit ${typeMap[type]}`;
                     document.getElementById('itemType').value = type;
                     document.getElementById('itemId').value = id;
                     document.getElementById('itemName').value = item.name;
@@ -1273,6 +1482,7 @@
                     const reader = new FileReader();
                     reader.onload = (event) => {
                         mapImage = event.target.result;
+                        zoomLevel = 1;
                         this.saveState();
                         this.render();
                     };
@@ -1282,7 +1492,9 @@
                 clearMap: function() {
                     if (!confirm('Clear the map image? Pieces will remain.')) return;
                     mapImage = null;
+                    zoomLevel = 1;
                     localStorage.removeItem(MAP_IMAGE_KEY);
+                    localStorage.removeItem(ZOOM_KEY);
                     this.render();
                 },
 
@@ -1320,6 +1532,7 @@
                                     items = data.items || items;
                                     pieces = data.pieces || [];
                                     mapImage = data.mapImage || null;
+                                    zoomLevel = 1;
                                     this.saveState();
                                     this.render();
                                     alert('Data imported successfully!');
@@ -1339,8 +1552,10 @@
                     items = { crew: [], truck: [], equipment: [] };
                     pieces = [];
                     mapImage = null;
+                    zoomLevel = 1;
                     localStorage.removeItem(STORAGE_KEY);
                     localStorage.removeItem(MAP_IMAGE_KEY);
+                    localStorage.removeItem(ZOOM_KEY);
                     this.render();
                 },
 
@@ -1360,14 +1575,14 @@
                 }
             };
 
-            // Initialize on load
+            // Initialize
             if (document.readyState === 'loading') {
                 document.addEventListener('DOMContentLoaded', () => CrewBattleMap.init());
             } else {
                 CrewBattleMap.init();
             }
 
-            // Expose to global scope
+            // Expose to global
             window.CrewBattleMap = CrewBattleMap;
 
         })(window);
