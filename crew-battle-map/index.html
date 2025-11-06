@@ -154,6 +154,171 @@
             font-size: 11px;
         }
 
+        /* Search & Filter Section */
+        .cbm-search-section {
+            padding: 16px 20px;
+            background: var(--cbm-card-bg);
+            border-bottom: 1px solid var(--cbm-border);
+        }
+
+        .cbm-search-box {
+            position: relative;
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .cbm-search-box i.fa-search {
+            position: absolute;
+            left: 14px;
+            color: var(--cbm-text-light);
+            font-size: 14px;
+        }
+
+        .cbm-search-box input {
+            width: 100%;
+            padding: 10px 38px 10px 38px;
+            border: 2px solid var(--cbm-border);
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            background: var(--cbm-bg);
+            color: var(--cbm-text);
+            transition: all 0.2s;
+        }
+
+        .cbm-search-box input:focus {
+            outline: none;
+            border-color: var(--cbm-primary);
+            background: white;
+        }
+
+        .cbm-clear-search {
+            position: absolute;
+            right: 8px;
+            background: none;
+            border: none;
+            color: var(--cbm-text-lighter);
+            cursor: pointer;
+            padding: 6px;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .cbm-clear-search:hover {
+            background: var(--cbm-border);
+            color: var(--cbm-text);
+        }
+
+        .cbm-filter-select {
+            width: 100%;
+            padding: 10px 14px;
+            border: 2px solid var(--cbm-border);
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            background: var(--cbm-bg);
+            color: var(--cbm-text);
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .cbm-filter-select:focus {
+            outline: none;
+            border-color: var(--cbm-primary);
+            background: white;
+        }
+
+        /* Quick Info Panel */
+        .cbm-quick-info {
+            margin: 16px 20px;
+            padding: 16px;
+            background: linear-gradient(135deg, var(--cbm-primary) 0%, var(--cbm-primary-light) 100%);
+            border-radius: 12px;
+            box-shadow: var(--cbm-shadow-lg);
+            color: white;
+        }
+
+        .cbm-quick-info-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 12px;
+        }
+
+        .cbm-quick-info-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .cbm-quick-info-title span {
+            font-size: 20px;
+        }
+
+        .cbm-quick-info-title strong {
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .cbm-close-info {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .cbm-close-info:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .cbm-quick-info-body {
+            margin-bottom: 12px;
+            font-size: 13px;
+            line-height: 1.6;
+            opacity: 0.95;
+        }
+
+        .cbm-quick-info-body > div {
+            margin-bottom: 6px;
+        }
+
+        .cbm-quick-info-actions {
+            display: flex;
+            gap: 8px;
+            padding-top: 12px;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .cbm-quick-info-actions .cbm-icon-btn {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            padding: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .cbm-quick-info-actions .cbm-icon-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-1px);
+        }
+
+        .cbm-quick-info-actions .cbm-icon-btn.delete:hover {
+            background: var(--cbm-danger);
+        }
+
         .cbm-controls {
             padding: 20px;
             border-bottom: 1px solid var(--cbm-border);
@@ -544,8 +709,23 @@
         .cbm-piece.dragging {
             opacity: 0.9;
             box-shadow: var(--cbm-shadow-xl);
-            transform: scale(1.1);
+            transform: rotate(-45deg) scale(1.1);
             z-index: 1000;
+        }
+
+        .cbm-piece.highlight {
+            animation: pulse 0.5s ease-in-out 3;
+            z-index: 999;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: rotate(-45deg) scale(1);
+            }
+            50% {
+                transform: rotate(-45deg) scale(1.4);
+                box-shadow: 0 0 20px rgba(76, 175, 125, 0.8);
+            }
         }
 
         .cbm-piece.crew {
@@ -863,6 +1043,51 @@
                 <p>Equipment & Personnel Tracker</p>
             </div>
 
+            <!-- Search & Filter -->
+            <div class="cbm-search-section">
+                <div class="cbm-search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchInput" placeholder="Search resources..." oninput="CrewBattleMap.handleSearch()">
+                    <button class="cbm-clear-search" id="clearSearch" onclick="CrewBattleMap.clearSearch()" style="display: none;">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <select id="filterType" class="cbm-filter-select" onchange="CrewBattleMap.handleFilter()">
+                    <option value="all">All Types</option>
+                    <option value="crew">Crews Only</option>
+                    <option value="truck">Trucks Only</option>
+                    <option value="equipment">Equipment Only</option>
+                </select>
+            </div>
+
+            <!-- Quick Info Panel -->
+            <div class="cbm-quick-info" id="quickInfo" style="display: none;">
+                <div class="cbm-quick-info-header">
+                    <div class="cbm-quick-info-title">
+                        <span id="quickInfoIcon"></span>
+                        <strong id="quickInfoName"></strong>
+                    </div>
+                    <button class="cbm-close-info" onclick="CrewBattleMap.clearSelection()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="cbm-quick-info-body">
+                    <div id="quickInfoDetails"></div>
+                    <div id="quickInfoLocation"></div>
+                </div>
+                <div class="cbm-quick-info-actions">
+                    <button class="cbm-icon-btn" onclick="CrewBattleMap.editSelectedItem()" title="Edit">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="cbm-icon-btn delete" onclick="CrewBattleMap.deleteSelectedItem()" title="Delete">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                    <button class="cbm-icon-btn" onclick="CrewBattleMap.panToSelected()" title="Show on Map">
+                        <i class="fas fa-crosshairs"></i>
+                    </button>
+                </div>
+            </div>
+
             <div class="cbm-controls">
                 <div class="cbm-controls-section">
                     <div class="cbm-controls-label">Add Resources</div>
@@ -1019,6 +1244,9 @@
             let dragOffset = { x: 0, y: 0 };
             let selectedItem = null;
             let zoomLevel = 1;
+            let searchQuery = '';
+            let currentFilter = 'all';
+            let selectedItemInfo = null;
 
             const STORAGE_KEY = 'crewBattleMapData';
             const MAP_IMAGE_KEY = 'crewBattleMapImage';
@@ -1104,6 +1332,7 @@
                     this.renderMap();
                     this.updateStats();
                     this.updateZoomDisplay();
+                    this.updateQuickInfo();
                 },
 
                 renderItemsList: function() {
@@ -1111,14 +1340,31 @@
                         const container = document.getElementById(type + 'List');
                         const countEl = document.getElementById(type + 'Count');
 
-                        container.innerHTML = items[type].map(item => {
-                            const isSelected = selectedItem && selectedItem.id === item.id && selectedItem.type === type;
+                        // Filter items based on current filter and search query
+                        let filteredItems = items[type];
+
+                        // Apply type filter
+                        if (currentFilter !== 'all' && currentFilter !== type) {
+                            filteredItems = [];
+                        }
+
+                        // Apply search filter
+                        if (searchQuery) {
+                            const query = searchQuery.toLowerCase();
+                            filteredItems = filteredItems.filter(item =>
+                                item.name.toLowerCase().includes(query) ||
+                                (item.details && item.details.toLowerCase().includes(query))
+                            );
+                        }
+
+                        container.innerHTML = filteredItems.map(item => {
+                            const isSelected = selectedItemInfo && selectedItemInfo.id === item.id && selectedItemInfo.type === type;
                             return `
                                 <div class="cbm-item ${type} ${isSelected ? 'selected' : ''}"
                                      data-id="${item.id}"
                                      data-type="${type}"
                                      draggable="true"
-                                     onclick="CrewBattleMap.handleItemClick('${type}', '${item.id}', event)">
+                                     onclick="CrewBattleMap.selectItem('${type}', '${item.id}', event)">
                                     <div class="cbm-item-content">
                                         <div class="cbm-item-icon">${ICONS[type]}</div>
                                         <div class="cbm-item-info">
@@ -1138,7 +1384,7 @@
                             `;
                         }).join('');
 
-                        countEl.textContent = items[type].length;
+                        countEl.textContent = filteredItems.length;
                     });
                 },
 
@@ -1183,6 +1429,13 @@
                         `;
                         pieceEl.dataset.pieceId = piece.id;
                         pieceEl.dataset.name = item.name;
+
+                        // Add click handler to select item
+                        pieceEl.addEventListener('click', (e) => {
+                            if (!draggedPiece) { // Only if not dragging
+                                this.selectItem(piece.type, piece.itemId, e);
+                            }
+                        });
 
                         wrapper.appendChild(pieceEl);
                     });
@@ -1468,8 +1721,122 @@
 
                     items[type] = items[type].filter(i => i.id !== id);
                     pieces = pieces.filter(p => !(p.type === type && p.itemId === id));
+
+                    // Clear selection if deleted item was selected
+                    if (selectedItemInfo && selectedItemInfo.type === type && selectedItemInfo.id === id) {
+                        this.clearSelection();
+                    }
+
                     this.saveState();
                     this.render();
+                },
+
+                // Search and filter methods
+                handleSearch: function() {
+                    const input = document.getElementById('searchInput');
+                    const clearBtn = document.getElementById('clearSearch');
+                    searchQuery = input.value.trim();
+
+                    // Show/hide clear button
+                    clearBtn.style.display = searchQuery ? 'block' : 'none';
+
+                    this.render();
+                },
+
+                clearSearch: function() {
+                    document.getElementById('searchInput').value = '';
+                    searchQuery = '';
+                    document.getElementById('clearSearch').style.display = 'none';
+                    this.render();
+                },
+
+                handleFilter: function() {
+                    currentFilter = document.getElementById('filterType').value;
+                    this.render();
+                },
+
+                // Selection methods
+                selectItem: function(type, id, event) {
+                    if (event && event.target.closest('.cbm-icon-btn')) {
+                        return; // Don't select if clicking action buttons
+                    }
+
+                    const item = items[type].find(i => i.id === id);
+                    if (!item) return;
+
+                    selectedItemInfo = { type, id, item };
+
+                    this.updateQuickInfo();
+                    this.render();
+                },
+
+                updateQuickInfo: function() {
+                    const panel = document.getElementById('quickInfo');
+
+                    if (!selectedItemInfo) {
+                        panel.style.display = 'none';
+                        return;
+                    }
+
+                    const { type, item } = selectedItemInfo;
+                    const piece = pieces.find(p => p.type === type && p.itemId === selectedItemInfo.id);
+
+                    document.getElementById('quickInfoIcon').innerHTML = ICONS[type];
+                    document.getElementById('quickInfoName').textContent = item.name;
+                    document.getElementById('quickInfoDetails').innerHTML = item.details ?
+                        `<div style="opacity: 0.9;"><i class="fas fa-info-circle"></i> ${this.escapeHtml(item.details)}</div>` :
+                        '<div style="opacity: 0.7;"><i>No details</i></div>';
+                    document.getElementById('quickInfoLocation').innerHTML = piece ?
+                        `<div style="opacity: 0.9;"><i class="fas fa-map-marker-alt"></i> On map</div>` :
+                        '<div style="opacity: 0.7;"><i class="fas fa-map-marker-alt"></i> Not placed</div>';
+
+                    panel.style.display = 'block';
+                },
+
+                clearSelection: function() {
+                    selectedItemInfo = null;
+                    document.getElementById('quickInfo').style.display = 'none';
+                    this.render();
+                },
+
+                editSelectedItem: function() {
+                    if (!selectedItemInfo) return;
+                    this.editItem(selectedItemInfo.type, selectedItemInfo.id);
+                },
+
+                deleteSelectedItem: function() {
+                    if (!selectedItemInfo) return;
+                    this.deleteItem(selectedItemInfo.type, selectedItemInfo.id);
+                },
+
+                panToSelected: function() {
+                    if (!selectedItemInfo) return;
+
+                    const piece = pieces.find(p =>
+                        p.type === selectedItemInfo.type &&
+                        p.itemId === selectedItemInfo.id
+                    );
+
+                    if (!piece) {
+                        alert('This item is not placed on the map yet');
+                        return;
+                    }
+
+                    // Highlight the piece temporarily
+                    const wrapper = document.getElementById('mapWrapper');
+                    const pieceEl = wrapper.querySelector(`[data-piece-id="${piece.id}"]`);
+
+                    if (pieceEl) {
+                        pieceEl.classList.add('highlight');
+
+                        // Scroll piece into view
+                        pieceEl.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
+
+                        // Remove highlight after animation
+                        setTimeout(() => {
+                            pieceEl.classList.remove('highlight');
+                        }, 2000);
+                    }
                 },
 
                 closeModal: function() {
