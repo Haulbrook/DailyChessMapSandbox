@@ -777,6 +777,10 @@
             background: linear-gradient(135deg, var(--cbm-equipment) 0%, var(--cbm-equipment-light) 100%);
         }
 
+        .cbm-piece.combined {
+            background: linear-gradient(135deg, var(--cbm-crew) 0%, var(--cbm-crew) 50%, var(--cbm-truck) 50%, var(--cbm-truck) 100%);
+        }
+
         .cbm-piece-icon {
             font-size: 16px;
             filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3));
@@ -951,6 +955,47 @@
             justify-content: flex-end;
             gap: 12px;
             background: var(--cbm-bg);
+        }
+
+        /* Driver Selection List */
+        .cbm-driver-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .cbm-driver-option {
+            padding: 14px 16px;
+            background: var(--cbm-card-bg);
+            border: 2px solid var(--cbm-border);
+            border-radius: 8px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .cbm-driver-option:hover {
+            border-color: var(--cbm-primary);
+            background: var(--cbm-bg);
+            transform: translateX(4px);
+        }
+
+        .cbm-driver-option i {
+            font-size: 18px;
+            color: var(--cbm-crew);
+        }
+
+        .cbm-driver-option .name {
+            font-weight: 600;
+            color: var(--cbm-text);
+            flex: 1;
+        }
+
+        .cbm-driver-option .details {
+            font-size: 12px;
+            color: var(--cbm-text-light);
         }
 
         .cbm-btn-secondary {
@@ -1311,6 +1356,29 @@
         </div>
     </div>
 
+    <!-- Driver Selection Modal -->
+    <div class="cbm-modal" id="driverModal">
+        <div class="cbm-modal-content">
+            <div class="cbm-modal-header">
+                <h2><i class="fas fa-user-tie"></i> Assign Driver</h2>
+                <button class="cbm-modal-close" onclick="CrewBattleMap.closeDriverModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="cbm-modal-body">
+                <p style="margin-bottom: 16px; color: var(--cbm-text-light);">
+                    <i class="fas fa-info-circle"></i> Select a crew member to drive this truck
+                </p>
+                <div id="driverList" class="cbm-driver-list"></div>
+                <div class="cbm-modal-footer" style="margin-top: 16px;">
+                    <button type="button" class="cbm-btn cbm-btn-secondary" onclick="CrewBattleMap.closeDriverModal()">
+                        <i class="fas fa-times"></i> Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         (function(window) {
             'use strict';
@@ -1336,6 +1404,7 @@
                 addResources: false,
                 dataManagement: false
             };
+            let pendingTruckDrop = null; // Store truck drop info while selecting driver
 
             const STORAGE_KEY = 'crewBattleMapData';
             const MAP_IMAGE_KEY = 'crewBattleMapImage';
@@ -1346,7 +1415,8 @@
             const ICONS = {
                 crew: '<i class="fas fa-users"></i>',
                 truck: '<i class="fas fa-truck"></i>',
-                equipment: '<i class="fas fa-tools"></i>'
+                equipment: '<i class="fas fa-tools"></i>',
+                combined: '<i class="fas fa-user-tie"></i>' // Combined crew+truck icon
             };
 
             // Piece dimensions
@@ -1513,23 +1583,43 @@
 
                     // Render pieces
                     pieces.forEach(piece => {
-                        const item = items[piece.type].find(i => i.id === piece.itemId);
-                        if (!item) return;
+                        let displayName, displayIcon;
+
+                        if (piece.type === 'combined') {
+                            // Combined crew+truck piece
+                            const crew = items.crew.find(i => i.id === piece.crewId);
+                            const truck = items.truck.find(i => i.id === piece.truckId);
+                            if (!crew || !truck) return;
+
+                            displayName = `${crew.name} / ${truck.name}`;
+                            displayIcon = ICONS.combined;
+                        } else {
+                            // Regular piece
+                            const item = items[piece.type].find(i => i.id === piece.itemId);
+                            if (!item) return;
+
+                            displayName = item.name;
+                            displayIcon = ICONS[piece.type];
+                        }
 
                         const pieceEl = document.createElement('div');
                         pieceEl.className = `cbm-piece ${piece.type}`;
                         pieceEl.style.left = piece.x + 'px';
                         pieceEl.style.top = piece.y + 'px';
                         pieceEl.innerHTML = `
-                            <span class="cbm-piece-icon">${ICONS[piece.type]}</span>
+                            <span class="cbm-piece-icon">${displayIcon}</span>
                         `;
                         pieceEl.dataset.pieceId = piece.id;
-                        pieceEl.dataset.name = item.name;
+                        pieceEl.dataset.name = displayName;
 
                         // Add click handler to select item
                         pieceEl.addEventListener('click', (e) => {
                             if (!draggedPiece) { // Only if not dragging
-                                this.selectItem(piece.type, piece.itemId, e);
+                                if (piece.type === 'combined') {
+                                    this.selectCombinedItem(piece.crewId, piece.truckId, e);
+                                } else {
+                                    this.selectItem(piece.type, piece.itemId, e);
+                                }
                             }
                         });
 
@@ -1762,14 +1852,28 @@
                     });
                 },
 
-                addPieceToMap: function(type, itemId, x, y) {
+                addPieceToMap: function(type, itemId, x, y, crewId) {
+                    // If adding a truck, prompt for driver selection
+                    if (type === 'truck' && !crewId) {
+                        pendingTruckDrop = { type, itemId, x, y };
+                        this.showDriverModal();
+                        return;
+                    }
+
                     const piece = {
                         id: 'piece_' + Date.now() + '_' + Math.random(),
-                        type: type,
+                        type: crewId ? 'combined' : type,
                         itemId: itemId,
                         x: Math.round(x),
                         y: Math.round(y)
                     };
+
+                    // Store crew and truck IDs for combined pieces
+                    if (crewId) {
+                        piece.crewId = crewId;
+                        piece.truckId = itemId;
+                    }
+
                     pieces.push(piece);
                     this.saveState();
                     this.render();
@@ -1900,6 +2004,27 @@
                     this.render();
                 },
 
+                selectCombinedItem: function(crewId, truckId, event) {
+                    if (event && event.target.closest('.cbm-icon-btn')) {
+                        return;
+                    }
+
+                    const crew = items.crew.find(i => i.id === crewId);
+                    const truck = items.truck.find(i => i.id === truckId);
+                    if (!crew || !truck) return;
+
+                    selectedItemInfo = {
+                        type: 'combined',
+                        crewId,
+                        truckId,
+                        crew,
+                        truck
+                    };
+
+                    this.updateQuickInfo();
+                    this.render();
+                },
+
                 updateQuickInfo: function() {
                     const panel = document.getElementById('quickInfo');
 
@@ -1908,17 +2033,39 @@
                         return;
                     }
 
-                    const { type, item } = selectedItemInfo;
-                    const piece = pieces.find(p => p.type === type && p.itemId === selectedItemInfo.id);
+                    if (selectedItemInfo.type === 'combined') {
+                        // Show combined crew+truck info
+                        const { crew, truck, crewId, truckId } = selectedItemInfo;
+                        const piece = pieces.find(p => p.type === 'combined' && p.crewId === crewId && p.truckId === truckId);
 
-                    document.getElementById('quickInfoIcon').innerHTML = ICONS[type];
-                    document.getElementById('quickInfoName').textContent = item.name;
-                    document.getElementById('quickInfoDetails').innerHTML = item.details ?
-                        `<div style="opacity: 0.9;"><i class="fas fa-info-circle"></i> ${this.escapeHtml(item.details)}</div>` :
-                        '<div style="opacity: 0.7;"><i>No details</i></div>';
-                    document.getElementById('quickInfoLocation').innerHTML = piece ?
-                        `<div style="opacity: 0.9;"><i class="fas fa-map-marker-alt"></i> On map</div>` :
-                        '<div style="opacity: 0.7;"><i class="fas fa-map-marker-alt"></i> Not placed</div>';
+                        document.getElementById('quickInfoIcon').innerHTML = ICONS.combined;
+                        document.getElementById('quickInfoName').textContent = `${crew.name} / ${truck.name}`;
+
+                        let detailsHtml = '<div style="opacity: 0.9;">';
+                        detailsHtml += `<div style="margin-bottom: 6px;"><i class="fas fa-user" style="color: var(--cbm-crew);"></i> Driver: ${this.escapeHtml(crew.name)}</div>`;
+                        if (crew.details) detailsHtml += `<div style="margin-left: 20px; font-size: 11px; opacity: 0.8;">${this.escapeHtml(crew.details)}</div>`;
+                        detailsHtml += `<div style="margin-top: 6px;"><i class="fas fa-truck" style="color: var(--cbm-truck);"></i> Vehicle: ${this.escapeHtml(truck.name)}</div>`;
+                        if (truck.details) detailsHtml += `<div style="margin-left: 20px; font-size: 11px; opacity: 0.8;">${this.escapeHtml(truck.details)}</div>`;
+                        detailsHtml += '</div>';
+
+                        document.getElementById('quickInfoDetails').innerHTML = detailsHtml;
+                        document.getElementById('quickInfoLocation').innerHTML = piece ?
+                            `<div style="opacity: 0.9;"><i class="fas fa-map-marker-alt"></i> On map</div>` :
+                            '<div style="opacity: 0.7;"><i class="fas fa-map-marker-alt"></i> Not placed</div>';
+                    } else {
+                        // Show regular item info
+                        const { type, item } = selectedItemInfo;
+                        const piece = pieces.find(p => p.type === type && p.itemId === selectedItemInfo.id);
+
+                        document.getElementById('quickInfoIcon').innerHTML = ICONS[type];
+                        document.getElementById('quickInfoName').textContent = item.name;
+                        document.getElementById('quickInfoDetails').innerHTML = item.details ?
+                            `<div style="opacity: 0.9;"><i class="fas fa-info-circle"></i> ${this.escapeHtml(item.details)}</div>` :
+                            '<div style="opacity: 0.7;"><i>No details</i></div>';
+                        document.getElementById('quickInfoLocation').innerHTML = piece ?
+                            `<div style="opacity: 0.9;"><i class="fas fa-map-marker-alt"></i> On map</div>` :
+                            '<div style="opacity: 0.7;"><i class="fas fa-map-marker-alt"></i> Not placed</div>';
+                    }
 
                     panel.style.display = 'block';
                 },
@@ -1972,6 +2119,52 @@
                 closeModal: function() {
                     document.getElementById('itemModal').classList.remove('active');
                     document.getElementById('itemForm').reset();
+                },
+
+                showDriverModal: function() {
+                    const driverList = document.getElementById('driverList');
+
+                    if (items.crew.length === 0) {
+                        alert('No crew members available. Please add crew members first before assigning them to trucks.');
+                        pendingTruckDrop = null;
+                        return;
+                    }
+
+                    // Build driver selection list
+                    driverList.innerHTML = items.crew.map(crew => {
+                        // Check if crew already assigned to a truck on map
+                        const alreadyAssigned = pieces.some(p => p.type === 'combined' && p.crewId === crew.id);
+                        const statusText = alreadyAssigned ? '<span style="color: var(--cbm-warning);"> (Already driving)</span>' : '';
+
+                        return `
+                            <div class="cbm-driver-option" onclick="CrewBattleMap.selectDriver('${crew.id}')">
+                                <i class="fas fa-user"></i>
+                                <div style="flex: 1;">
+                                    <div class="name">${this.escapeHtml(crew.name)}${statusText}</div>
+                                    ${crew.details ? `<div class="details">${this.escapeHtml(crew.details)}</div>` : ''}
+                                </div>
+                                <i class="fas fa-chevron-right" style="color: var(--cbm-text-lighter);"></i>
+                            </div>
+                        `;
+                    }).join('');
+
+                    document.getElementById('driverModal').classList.add('active');
+                },
+
+                closeDriverModal: function() {
+                    document.getElementById('driverModal').classList.remove('active');
+                    pendingTruckDrop = null;
+                },
+
+                selectDriver: function(crewId) {
+                    if (!pendingTruckDrop) return;
+
+                    const { type, itemId, x, y } = pendingTruckDrop;
+                    this.closeDriverModal();
+
+                    // Add combined piece with crew + truck
+                    this.addPieceToMap(type, itemId, x, y, crewId);
+                    pendingTruckDrop = null;
                 },
 
                 handleFormSubmit: function(e) {
