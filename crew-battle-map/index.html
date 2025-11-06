@@ -1497,24 +1497,38 @@
                 },
 
                 initMap: function() {
-                    // Initialize Leaflet map
-                    map = L.map('map').setView(DEFAULT_CENTER, DEFAULT_ZOOM);
+                    // Initialize Leaflet map with a slight delay to ensure container is ready
+                    setTimeout(() => {
+                        try {
+                            // Initialize Leaflet map
+                            map = L.map('map').setView(DEFAULT_CENTER, DEFAULT_ZOOM);
 
-                    // Add OpenStreetMap tiles
-                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                        attribution: '© OpenStreetMap contributors',
-                        maxZoom: 19
-                    }).addTo(map);
+                            // Add OpenStreetMap tiles
+                            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                                attribution: '© OpenStreetMap contributors',
+                                maxZoom: 19
+                            }).addTo(map);
 
-                    // Add click handler to add items to map
-                    map.on('click', (e) => {
-                        if (selectedItem) {
-                            this.addItemToMap(selectedItem.type, selectedItem.id, e.latlng);
-                            selectedItem = null;
-                            this.updateMobileHelper(false);
-                            this.render();
+                            // Fix map size after initialization
+                            setTimeout(() => {
+                                map.invalidateSize();
+                                this.renderMap(); // Render vendors on map
+                            }, 100);
+
+                            // Add click handler to add items to map
+                            map.on('click', (e) => {
+                                if (selectedItem) {
+                                    this.addItemToMap(selectedItem.type, selectedItem.id, e.latlng);
+                                    selectedItem = null;
+                                    this.updateMobileHelper(false);
+                                    this.render();
+                                }
+                            });
+                        } catch (error) {
+                            console.error('Error initializing map:', error);
+                            alert('Error loading map. Please refresh the page.');
                         }
-                    });
+                    }, 100);
                 },
 
                 initializeVendors: function() {
