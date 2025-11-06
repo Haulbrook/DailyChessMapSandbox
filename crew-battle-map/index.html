@@ -11,32 +11,32 @@
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
         :root {
-            --cbm-primary: #1e3a5f;
-            --cbm-primary-light: #2c5282;
-            --cbm-secondary: #2563eb;
-            --cbm-secondary-light: #3b82f6;
-            --cbm-success: #10b981;
-            --cbm-success-light: #34d399;
-            --cbm-danger: #ef4444;
-            --cbm-danger-light: #f87171;
-            --cbm-warning: #f59e0b;
-            --cbm-crew: #8b5cf6;
-            --cbm-crew-light: #a78bfa;
-            --cbm-truck: #f97316;
-            --cbm-truck-light: #fb923c;
-            --cbm-equipment: #14b8a6;
-            --cbm-equipment-light: #2dd4bf;
-            --cbm-bg: #f8fafc;
-            --cbm-card-bg: #ffffff;
-            --cbm-border: #e2e8f0;
-            --cbm-text: #1e293b;
-            --cbm-text-light: #64748b;
-            --cbm-text-lighter: #94a3b8;
-            --cbm-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-            --cbm-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-            --cbm-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            --cbm-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-            --cbm-shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            --cbm-primary: #4CAF7D;
+            --cbm-primary-light: #6BC795;
+            --cbm-secondary: #E8956B;
+            --cbm-secondary-light: #F0AB84;
+            --cbm-success: #4CAF7D;
+            --cbm-success-light: #6BC795;
+            --cbm-danger: #E85D5D;
+            --cbm-danger-light: #F07B7B;
+            --cbm-warning: #F4B860;
+            --cbm-crew: #FF6B9D;
+            --cbm-crew-light: #FF8CB3;
+            --cbm-truck: #D97652;
+            --cbm-truck-light: #E59470;
+            --cbm-equipment: #7A9B76;
+            --cbm-equipment-light: #98B694;
+            --cbm-bg: #FBF9F4;
+            --cbm-card-bg: #FFFFFF;
+            --cbm-border: #E8DCC8;
+            --cbm-text: #3A3226;
+            --cbm-text-light: #7A6F5D;
+            --cbm-text-lighter: #B0A693;
+            --cbm-shadow-sm: 0 1px 2px 0 rgba(58, 50, 38, 0.08);
+            --cbm-shadow: 0 1px 3px 0 rgba(58, 50, 38, 0.12), 0 1px 2px 0 rgba(58, 50, 38, 0.08);
+            --cbm-shadow-md: 0 4px 6px -1px rgba(58, 50, 38, 0.12), 0 2px 4px -1px rgba(58, 50, 38, 0.08);
+            --cbm-shadow-lg: 0 10px 15px -3px rgba(58, 50, 38, 0.12), 0 4px 6px -2px rgba(58, 50, 38, 0.08);
+            --cbm-shadow-xl: 0 20px 25px -5px rgba(58, 50, 38, 0.12), 0 10px 10px -5px rgba(58, 50, 38, 0.08);
         }
 
         * {
@@ -111,41 +111,47 @@
         }
 
         .cbm-header {
-            padding: 28px 24px;
+            padding: 32px 28px;
             background: linear-gradient(135deg, var(--cbm-primary) 0%, var(--cbm-primary-light) 100%);
             color: white;
-            border-bottom: 4px solid var(--cbm-secondary);
+            border-bottom: 5px solid var(--cbm-secondary);
+            box-shadow: var(--cbm-shadow-lg);
         }
 
         .cbm-header-brand {
             display: flex;
             align-items: center;
-            gap: 12px;
-            margin-bottom: 8px;
+            gap: 16px;
+            margin-bottom: 6px;
         }
 
         .cbm-header-icon {
-            width: 40px;
-            height: 40px;
-            background: rgba(255, 255, 255, 0.15);
-            border-radius: 10px;
+            width: 50px;
+            height: 50px;
+            background: rgba(255, 255, 255, 0.25);
+            border-radius: 14px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 20px;
+            font-size: 26px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         }
 
         .cbm-header h1 {
-            font-size: 20px;
-            font-weight: 700;
-            letter-spacing: -0.02em;
+            font-size: 28px;
+            font-weight: 900;
+            letter-spacing: -0.04em;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
         }
 
         .cbm-header p {
-            font-size: 13px;
-            opacity: 0.85;
-            font-weight: 400;
-            margin-left: 52px;
+            font-size: 14px;
+            opacity: 0.92;
+            font-weight: 500;
+            margin-left: 66px;
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+            font-size: 11px;
         }
 
         .cbm-controls {
@@ -773,15 +779,22 @@
             }
 
             .cbm-header {
-                padding: 16px 20px;
+                padding: 20px;
             }
 
             .cbm-header h1 {
-                font-size: 18px;
+                font-size: 22px;
+                font-weight: 900;
             }
 
             .cbm-header p {
-                font-size: 12px;
+                font-size: 10px;
+            }
+
+            .cbm-header-icon {
+                width: 44px;
+                height: 44px;
+                font-size: 22px;
             }
 
             .cbm-controls {
