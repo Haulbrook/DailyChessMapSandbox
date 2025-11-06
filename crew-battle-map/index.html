@@ -518,22 +518,21 @@
 
         .cbm-piece {
             position: absolute;
-            padding: 10px 14px;
-            border-radius: 8px;
-            font-size: 13px;
-            font-weight: 600;
+            width: 36px;
+            height: 36px;
+            border-radius: 50% 50% 50% 0;
+            transform: rotate(-45deg);
+            font-size: 14px;
             color: white;
             cursor: move;
-            box-shadow: var(--cbm-shadow-md);
+            box-shadow: var(--cbm-shadow-lg);
             user-select: none;
             display: flex;
             align-items: center;
-            gap: 8px;
+            justify-content: center;
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            min-width: 100px;
-            backdrop-filter: blur(8px);
-            letter-spacing: -0.01em;
             touch-action: none;
+            border: 3px solid rgba(255, 255, 255, 0.9);
         }
 
         .cbm-piece.dragging {
@@ -557,7 +556,34 @@
 
         .cbm-piece-icon {
             font-size: 16px;
-            filter: drop-shadow(0 1px 2px rgba(0,0,0,0.1));
+            filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3));
+            transform: rotate(45deg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .cbm-piece:hover {
+            transform: rotate(-45deg) scale(1.15);
+            z-index: 100;
+        }
+
+        .cbm-piece:hover::after {
+            content: attr(data-name);
+            position: absolute;
+            bottom: -28px;
+            left: 50%;
+            transform: translateX(-50%) rotate(45deg);
+            background: rgba(0, 0, 0, 0.85);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            white-space: nowrap;
+            pointer-events: none;
+            box-shadow: var(--cbm-shadow-md);
+            letter-spacing: -0.01em;
         }
 
         /* Modal */
@@ -993,8 +1019,8 @@
             };
 
             // Piece dimensions
-            const PIECE_WIDTH = 100;
-            const PIECE_HEIGHT = 40;
+            const PIECE_WIDTH = 36;
+            const PIECE_HEIGHT = 48;
 
             // Mobile detection
             const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ||
@@ -1141,9 +1167,9 @@
                         pieceEl.style.top = piece.y + 'px';
                         pieceEl.innerHTML = `
                             <span class="cbm-piece-icon">${ICONS[piece.type]}</span>
-                            <span>${this.escapeHtml(item.name)}</span>
                         `;
                         pieceEl.dataset.pieceId = piece.id;
+                        pieceEl.dataset.name = item.name;
 
                         wrapper.appendChild(pieceEl);
                     });
