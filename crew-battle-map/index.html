@@ -2059,9 +2059,33 @@
 
                         document.getElementById('quickInfoIcon').innerHTML = ICONS[type];
                         document.getElementById('quickInfoName').textContent = item.name;
-                        document.getElementById('quickInfoDetails').innerHTML = item.details ?
-                            `<div style="opacity: 0.9;"><i class="fas fa-info-circle"></i> ${this.escapeHtml(item.details)}</div>` :
-                            '<div style="opacity: 0.7;"><i>No details</i></div>';
+
+                        // Build details HTML
+                        let detailsHtml = '<div style="opacity: 0.9;">';
+
+                        // Show driver info for trucks
+                        if (type === 'truck') {
+                            const combinedPiece = pieces.find(p => p.type === 'combined' && p.truckId === selectedItemInfo.id);
+                            if (combinedPiece) {
+                                const driver = items.crew.find(c => c.id === combinedPiece.crewId);
+                                if (driver) {
+                                    detailsHtml += `<div style="margin-bottom: 6px;"><i class="fas fa-user" style="color: var(--cbm-crew);"></i> Driver: ${this.escapeHtml(driver.name)}</div>`;
+                                }
+                            } else {
+                                detailsHtml += `<div style="margin-bottom: 6px; opacity: 0.7;"><i class="fas fa-user" style="color: var(--cbm-crew);"></i> Driver: <i>No driver assigned</i></div>`;
+                            }
+                        }
+
+                        // Show item details
+                        if (item.details) {
+                            detailsHtml += `<div style="${type === 'truck' ? 'margin-top: 6px;' : ''}"><i class="fas fa-info-circle"></i> ${this.escapeHtml(item.details)}</div>`;
+                        } else if (type !== 'truck') {
+                            detailsHtml += '<div style="opacity: 0.7;"><i>No details</i></div>';
+                        }
+
+                        detailsHtml += '</div>';
+
+                        document.getElementById('quickInfoDetails').innerHTML = detailsHtml;
                         document.getElementById('quickInfoLocation').innerHTML = piece ?
                             `<div style="opacity: 0.9;"><i class="fas fa-map-marker-alt"></i> On map</div>` :
                             '<div style="opacity: 0.7;"><i class="fas fa-map-marker-alt"></i> Not placed</div>';
