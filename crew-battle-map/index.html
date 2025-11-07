@@ -1613,22 +1613,28 @@
                     }
                 },
 
-                geocodeAddress: function(address, callback) {
+                geocodeAddress: function(address, callback, errorCallback) {
                     // Use Nominatim (OpenStreetMap) for free geocoding
                     const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`;
 
-                    fetch(url)
+                    fetch(url, {
+                        headers: {
+                            'User-Agent': 'DailyLogisticsManager/1.0'
+                        }
+                    })
                         .then(response => response.json())
                         .then(data => {
                             if (data && data.length > 0) {
+                                console.log(`✓ Geocoded: ${address}`);
                                 callback(parseFloat(data[0].lat), parseFloat(data[0].lon));
                             } else {
-                                alert(`Could not find location for: ${address}`);
+                                console.warn(`✗ Could not find location for: ${address}`);
+                                if (errorCallback) errorCallback(`Could not find location for: ${address}`);
                             }
                         })
                         .catch(error => {
-                            console.error('Geocoding error:', error);
-                            alert('Error finding location. Please try again.');
+                            console.error('Geocoding error for', address, ':', error);
+                            if (errorCallback) errorCallback('Network error while geocoding');
                         });
                 },
 
@@ -2712,6 +2718,8 @@
 
                     this.geocodeAddress(query, (lat, lng) => {
                         map.setView([lat, lng], 14);
+                    }, (error) => {
+                        alert(`Location search failed: ${error}\n\nTry being more specific (e.g., "123 Main St, Atlanta, GA")`);
                     });
                 },
 
