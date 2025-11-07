@@ -1027,6 +1027,7 @@
                 display: flex;
                 flex-direction: column;
                 overflow: hidden;
+                min-height: 0;
             }
 
             .cbm-map-area {
@@ -1086,10 +1087,14 @@
 
             .cbm-items-list {
                 padding: 10px 16px;
-                overflow-y: auto;
+                overflow-y: scroll;
+                overflow-x: hidden;
                 flex: 1 1 auto;
                 min-height: 0;
+                max-height: 100%;
                 -webkit-overflow-scrolling: touch;
+                position: relative;
+                touch-action: pan-y;
             }
 
             .cbm-item {
@@ -1120,10 +1125,13 @@
         @media (max-width: 768px) and (orientation: portrait) {
             .cbm-sidebar {
                 max-height: 45vh;
+                height: 45vh;
+                min-height: 0;
             }
 
             .cbm-map-area {
                 min-height: 55vh;
+                height: 55vh;
             }
         }
 
@@ -1131,12 +1139,14 @@
         @media (max-width: 768px) and (orientation: landscape) {
             .cbm-container {
                 flex-direction: row;
+                height: 100vh;
             }
 
             .cbm-sidebar {
                 width: 320px;
                 max-height: 100vh;
                 height: 100vh;
+                min-height: 0;
                 border-right: 1px solid var(--cbm-border);
                 border-bottom: none;
             }
@@ -1144,6 +1154,7 @@
             .cbm-map-area {
                 flex: 1;
                 min-height: 100vh;
+                height: 100vh;
             }
         }
 
