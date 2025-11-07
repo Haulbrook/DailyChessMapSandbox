@@ -1023,18 +1023,21 @@
 
             .cbm-sidebar {
                 width: 100%;
-                max-height: none;
+                max-height: 50vh;
                 border-right: none;
                 border-bottom: 1px solid var(--cbm-border);
+                display: flex;
+                flex-direction: column;
             }
 
             .cbm-map-area {
-                min-height: 100vh;
-                flex: none;
+                min-height: 50vh;
+                flex: 1;
             }
 
             .cbm-header {
                 padding: 14px 18px;
+                flex-shrink: 0;
             }
 
             .cbm-header h1 {
@@ -1054,12 +1057,14 @@
 
             .cbm-search-section {
                 padding: 10px 16px;
+                flex-shrink: 0;
             }
 
             .cbm-quick-info {
                 margin: 10px 16px;
                 padding: 10px;
                 font-size: 12px;
+                flex-shrink: 0;
             }
 
             .cbm-quick-info-title strong {
@@ -1068,6 +1073,7 @@
 
             .cbm-controls {
                 padding: 10px 16px;
+                flex-shrink: 0;
             }
 
             .cbm-controls-header {
@@ -1081,8 +1087,9 @@
 
             .cbm-items-list {
                 padding: 10px 16px;
-                min-height: 200px;
-                flex: 0 0 auto;
+                max-height: 30vh;
+                overflow-y: auto;
+                flex: 1 1 auto;
             }
 
             .cbm-item {
