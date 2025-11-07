@@ -1376,9 +1376,10 @@
                         </label>
                         <select id="vendorCategory">
                             <option value="">Select category...</option>
-                            <option value="landscape_supply">Landscape Supply</option>
-                            <option value="materials">Materials</option>
-                            <option value="plumbing">Plumbing</option>
+                            <option value="supplier">Supplier (Landscape/Hardscape)</option>
+                            <option value="nursery">Nursery (Plants/Trees)</option>
+                            <option value="sod_turf">Sod & Turf</option>
+                            <option value="retail_garden_center">Retail Garden Center</option>
                             <option value="equipment_rental">Equipment Rental</option>
                             <option value="other">Other</option>
                         </select>
@@ -1535,55 +1536,70 @@
                     // Pre-populate vendors on first run
                     if (items.vendor.length === 0) {
                         const defaultVendors = [
-                            {
-                                name: 'Stovall',
-                                address: 'Gainesville, GA',
-                                category: 'landscape_supply',
-                                details: 'Landscape supply'
-                            },
-                            {
-                                name: 'SiteOne Landscape Supply',
-                                address: 'Gainesville, GA',
-                                category: 'landscape_supply',
-                                details: 'Professional landscape supplies'
-                            },
-                            {
-                                name: 'City Plumbing',
-                                address: 'Gainesville, GA',
-                                category: 'plumbing',
-                                details: 'Plumbing supplies and fixtures'
-                            },
-                            {
-                                name: 'The Rock Yard',
-                                address: 'Gainesville, GA',
-                                category: 'materials',
-                                details: 'Stone and rock materials'
-                            }
+                            // SiteOne Locations
+                            { name: 'SiteOne – Buford', address: '4937 Bristol Industrial Way, Buford, GA 30518', category: 'supplier' },
+                            { name: 'SiteOne – Lawrenceville', address: '1510 Lakes Pkwy, Lawrenceville, GA 30043', category: 'supplier' },
+                            { name: 'SiteOne – Suwanee (Irrigation)', address: '3550 Lawrenceville-Suwanee Rd, Suwanee, GA 30024', category: 'supplier' },
+                            { name: 'SiteOne – Alpharetta', address: '630 Union Hill Rd, Alpharetta, GA 30004', category: 'supplier' },
+                            { name: 'SiteOne Stone Center – Cumming (Alliance Stone #1012)', address: '5420 Campground Rd, Cumming, GA 30040', category: 'supplier', notes: 'Stone Center / Alliance Stone yard' },
+                            { name: 'SiteOne Stone Center – Cumming (SLS #1045)', address: '2235 Pendley Rd, Cumming, GA 30041', category: 'supplier', notes: 'Former Southern Landscape Supply location' },
+
+                            // Stovall Locations
+                            { name: 'Stovall & Company – Braselton', address: '2695 Old Winder Hwy, Braselton, GA 30517', category: 'supplier' },
+                            { name: 'Stovall & Company – Hoschton', address: '6077 Hwy 53, Hoschton, GA 30548', category: 'supplier' },
+                            { name: 'Stovall & Company – Alpharetta', address: '5285 McGinnis Ferry Rd, Alpharetta, GA 30005', category: 'supplier' },
+                            { name: 'Stovall Stone Yard – Doraville', address: '6665 Buford Hwy NE, Doraville, GA 30340', category: 'supplier' },
+                            { name: 'Stovall & Company – Athens', address: '1708 S Milledge Ave, Athens, GA 30605', category: 'supplier' },
+
+                            // Other Suppliers
+                            { name: 'Stone Center (Outdoor Living Supply) – Cumming', address: '4675-B Canton Hwy, Cumming, GA 30040', category: 'supplier' },
+                            { name: 'Southern Landscape Supply – Cumming', address: '2235 Pendley Rd, Cumming, GA 30041', category: 'supplier' },
+                            { name: 'GLM Landscape Supply – Alpharetta/Milton', address: '13975 Hwy 9, Alpharetta, GA 30004', category: 'supplier' },
+
+                            // Nurseries
+                            { name: 'Buck Jones Nursery – Lawrenceville', address: '689 Grayson New Hope Rd, Lawrenceville, GA 30045', category: 'nursery' },
+                            { name: 'Woody\'s Nursery (Wholesale) – Duluth', address: '2886 N Buford Hwy, Duluth, GA 30096', category: 'nursery' },
+                            { name: 'Kinsey Family Farm – Gainesville', address: '7170 Jot-em Down Rd, Gainesville, GA 30506', category: 'nursery', notes: 'Farm sometimes lists 7140 for directions; 7170 works best for GPS' },
+                            { name: 'Full Bloom Nursery – Clermont', address: '6662 Holly Springs Rd, Clermont, GA 30527', category: 'nursery' },
+                            { name: 'Lanier Nursery & Gardens – Flowery Branch', address: '4195 Schubert Rd, Flowery Branch, GA 30502', category: 'nursery' },
+
+                            // Sod & Turf
+                            { name: 'Super-Sod of Gwinnett – Lawrenceville', address: '111 Hurricane Shoals Rd NW, Lawrenceville, GA 30046', category: 'sod_turf' },
+                            { name: 'Southeastern Sod – Sugar Hill', address: '1400 Buford Hwy, Ste G6, Sugar Hill, GA 30518', category: 'sod_turf' },
+                            { name: 'NG Turf – Clarkesville Farm', address: '1805 Hardman Rd, Clarkesville, GA 30523', category: 'sod_turf', notes: 'Closest NG Turf farm to Gainesville' },
+
+                            // Retail Garden Centers
+                            { name: 'Pike Nurseries – Suwanee', address: '1105 Peachtree Industrial Blvd, Suwanee, GA 30024', category: 'retail_garden_center' },
+                            { name: 'Pike Nurseries – Milton/Crabapple', address: '12325 Crabapple Rd, Alpharetta, GA 30004', category: 'retail_garden_center' },
+                            { name: 'Pike Nurseries – Cumming', address: '6050 Bethelview Rd, Cumming, GA 30040', category: 'retail_garden_center' },
+                            { name: 'Northside Garden Center – Sugar Hill/Buford', address: '950 Peachtree Industrial Blvd, Buford, GA 30518', category: 'retail_garden_center' }
                         ];
 
-                        defaultVendors.forEach(vendor => {
+                        defaultVendors.forEach((vendor, index) => {
                             const id = 'vendor_' + Date.now() + '_' + Math.random();
                             items.vendor.push({
                                 id: id,
                                 name: vendor.name,
                                 address: vendor.address,
                                 category: vendor.category,
-                                details: vendor.details,
+                                details: vendor.notes || '',
                                 phone: '',
                                 lat: null,
                                 lng: null
                             });
 
-                            // Geocode the address
-                            this.geocodeAddress(vendor.address, (lat, lng) => {
-                                const item = items.vendor.find(v => v.id === id);
-                                if (item) {
-                                    item.lat = lat;
-                                    item.lng = lng;
-                                    this.saveState();
-                                    this.renderMap();
-                                }
-                            });
+                            // Geocode with delay to respect rate limits (1 req/sec for Nominatim)
+                            setTimeout(() => {
+                                this.geocodeAddress(vendor.address, (lat, lng) => {
+                                    const item = items.vendor.find(v => v.id === id);
+                                    if (item) {
+                                        item.lat = lat;
+                                        item.lng = lng;
+                                        this.saveState();
+                                        this.renderMap();
+                                    }
+                                });
+                            }, index * 1500); // 1.5 second delay between each request
                         });
 
                         this.saveState();
@@ -1776,9 +1792,10 @@
                     } else if (type === 'vendor') {
                         if (item.category) {
                             const categoryLabels = {
-                                'landscape_supply': 'Landscape Supply',
-                                'materials': 'Materials',
-                                'plumbing': 'Plumbing',
+                                'supplier': 'Supplier (Landscape/Hardscape)',
+                                'nursery': 'Nursery (Plants/Trees)',
+                                'sod_turf': 'Sod & Turf',
+                                'retail_garden_center': 'Retail Garden Center',
                                 'equipment_rental': 'Equipment Rental',
                                 'other': 'Other'
                             };
@@ -2760,7 +2777,15 @@
                         }
                     } else if (type === 'vendor') {
                         if (item.category) {
-                            detailsHtml += `<div><i class="fas fa-tag"></i> ${item.category.replace('_', ' ')}</div>`;
+                            const categoryLabels = {
+                                'supplier': 'Supplier',
+                                'nursery': 'Nursery',
+                                'sod_turf': 'Sod & Turf',
+                                'retail_garden_center': 'Garden Center',
+                                'equipment_rental': 'Equipment Rental',
+                                'other': 'Other'
+                            };
+                            detailsHtml += `<div><i class="fas fa-tag"></i> ${categoryLabels[item.category] || item.category}</div>`;
                         }
                         if (item.phone) {
                             detailsHtml += `<div><i class="fas fa-phone"></i> ${this.escapeHtml(item.phone)}</div>`;
