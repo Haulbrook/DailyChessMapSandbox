@@ -1624,6 +1624,12 @@
                             { name: 'Northside Garden Center – Sugar Hill/Buford', address: '950 Peachtree Industrial Blvd, Buford, GA 30518', category: 'retail_garden_center' }
                         ];
 
+                        // Track geocoding results
+                        const geocodeResults = [];
+                        let processedCount = 0;
+
+                        console.log('%c🗺️ Starting vendor geocoding...', 'color: #4A90E2; font-weight: bold; font-size: 14px;');
+
                         defaultVendors.forEach((vendor, index) => {
                             const id = 'vendor_' + Date.now() + '_' + Math.random();
                             items.vendor.push({
@@ -1639,19 +1645,45 @@
 
                             // Geocode with delay to respect rate limits (1 req/sec for Nominatim)
                             setTimeout(() => {
-                                this.geocodeAddress(vendor.address, (lat, lng) => {
-                                    const item = items.vendor.find(v => v.id === id);
-                                    if (item) {
-                                        item.lat = lat;
-                                        item.lng = lng;
-                                        this.saveState();
-                                        this.renderMap();
+                                this.geocodeAddress(
+                                    vendor.address,
+                                    (lat, lng) => {
+                                        const item = items.vendor.find(v => v.id === id);
+                                        if (item) {
+                                            item.lat = lat;
+                                            item.lng = lng;
+                                            this.saveState();
+                                            this.renderMap();
+                                        }
+                                        geocodeResults.push({ name: vendor.name, address: vendor.address, status: '✓ Success', lat: lat.toFixed(4), lng: lng.toFixed(4) });
+                                        processedCount++;
+                                        this.checkGeocodingComplete(processedCount, defaultVendors.length, geocodeResults);
+                                    },
+                                    (error) => {
+                                        geocodeResults.push({ name: vendor.name, address: vendor.address, status: '✗ FAILED', lat: '-', lng: '-' });
+                                        processedCount++;
+                                        this.checkGeocodingComplete(processedCount, defaultVendors.length, geocodeResults);
                                     }
-                                });
+                                );
                             }, index * 1500); // 1.5 second delay between each request
                         });
 
                         this.saveState();
+                    }
+                },
+
+                checkGeocodingComplete: function(processed, total, results) {
+                    if (processed === total) {
+                        console.log(`\n%c📍 Geocoding Complete: ${processed}/${total} vendors processed`, 'color: #10b981; font-weight: bold; font-size: 14px;');
+                        console.table(results);
+
+                        const failed = results.filter(r => r.status.includes('FAILED'));
+                        if (failed.length > 0) {
+                            console.log(`\n%c⚠️ ${failed.length} address(es) failed to geocode:`, 'color: #ef4444; font-weight: bold;');
+                            failed.forEach(f => console.log(`   • ${f.name}: ${f.address}`));
+                        } else {
+                            console.log('%c✓ All vendor addresses geocoded successfully!', 'color: #10b981; font-weight: bold;');
+                        }
                     }
                 },
 
