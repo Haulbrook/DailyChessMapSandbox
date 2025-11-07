@@ -2699,6 +2699,15 @@
                     const item = items[type].find(i => i.id === id);
                     if (!item) return;
 
+                    // For jobs/vendors without locations on mobile, enable placement mode
+                    if (isMobile && (type === 'job' || type === 'vendor') && !item.lat && !item.lng) {
+                        selectedItem = { type, id };
+                        this.updateMobileHelper(true);
+                        this.render();
+                        return;
+                    }
+
+                    // Otherwise show info panel
                     selectedItemInfo = { type, id, item };
 
                     // For jobs/vendors with locations, pan to them on map
