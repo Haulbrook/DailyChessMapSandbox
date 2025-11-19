@@ -25,8 +25,8 @@
 [[headers]]
   for = "/*"
   [headers.values]
-    # Security headers
-    X-Frame-Options = "SAMEORIGIN"
+# Security headers - Allow embedding in Clipping dashboard
+Content-Security-Policy = "frame-ancestors 'self' https://haulbrook.github.io https://*.github.io https://*.netlify.app http://localhost:* http://127.0.0.1:*;"
     X-Content-Type-Options = "nosniff"
     X-XSS-Protection = "1; mode=block"
     Referrer-Policy = "strict-origin-when-cross-origin"
