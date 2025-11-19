@@ -25,8 +25,9 @@
 [[headers]]
   for = "/*"
   [headers.values]
-# Security headers - Allow embedding in Clipping dashboard
-Content-Security-Policy = "frame-ancestors 'self' https://haulbrook.github.io https://*.github.io https://*.netlify.app http://localhost:* http://127.0.0.1:*;"
+    # Security headers - Allow embedding in Clipping dashboard
+    # Removed X-Frame-Options to allow Content-Security-Policy frame-ancestors
+    Content-Security-Policy = "frame-ancestors 'self' https://haulbrook.github.io https://*.github.io https://*.netlify.app http://localhost:* http://127.0.0.1:*;"
     X-Content-Type-Options = "nosniff"
     X-XSS-Protection = "1; mode=block"
     Referrer-Policy = "strict-origin-when-cross-origin"
@@ -36,7 +37,7 @@ Content-Security-Policy = "frame-ancestors 'self' https://haulbrook.github.io ht
 
     # Cache control
     Cache-Control = "public, max-age=3600"
-
+That's the only change needed - just removing X-Frame-Options = "SAMEORIGIN" and adding the Content-Security-Policy line!
 [[headers]]
   for = "/*.html"
   [headers.values]
