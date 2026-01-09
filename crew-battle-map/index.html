@@ -1278,6 +1278,11 @@
                         <i class="fas fa-chevron-down cbm-toggle-icon" id="dataManagementIcon"></i>
                     </div>
                     <div class="cbm-controls-content" id="dataManagementContent">
+                        <div class="cbm-btn-group" style="margin-bottom: 10px;">
+                            <button class="cbm-btn cbm-btn-job" onclick="CrewBattleMap.syncFromGoogleSheet()" style="flex: 2;">
+                                <i class="fas fa-sync-alt"></i> Sync Jobs from Sheet
+                            </button>
+                        </div>
                         <div class="cbm-btn-group">
                             <button class="cbm-btn cbm-btn-success" onclick="CrewBattleMap.exportData()">
                                 <i class="fas fa-download"></i> Export
@@ -2711,6 +2716,168 @@
                     localStorage.removeItem(MAP_IMAGE_KEY);
                     localStorage.removeItem(ZOOM_KEY);
                     this.render();
+                },
+
+                // Google Sheets sync configuration
+                GOOGLE_SHEET_ID: '13bnntgZiXdCA2KQvJXpIBA1rCBzx3ZmeKakzYFFg7QA',
+                GOOGLE_SHEET_GID: '149833501', // WorkOrders tab
+
+                syncFromGoogleSheet: async function() {
+                    const sheetUrl = `https://docs.google.com/spreadsheets/d/${this.GOOGLE_SHEET_ID}/gviz/tq?tqx=out:csv&gid=${this.GOOGLE_SHEET_GID}`;
+
+                    console.log('%c📊 Syncing jobs from Google Sheet...', 'color: #4A90E2; font-weight: bold; font-size: 14px;');
+
+                    try {
+                        const response = await fetch(sheetUrl);
+                        if (!response.ok) {
+                            throw new Error('Failed to fetch sheet. Make sure the sheet is shared publicly or published to the web.');
+                        }
+
+                        const csvText = await response.text();
+                        const rows = this.parseCSV(csvText);
+
+                        if (rows.length < 2) {
+                            alert('No data found in the sheet.');
+                            return;
+                        }
+
+                        // Find column indices (header row is first)
+                        const headers = rows[0].map(h => h.toLowerCase().trim());
+                        const customerNameIdx = headers.findIndex(h => h.includes('customer') && h.includes('name'));
+                        const jobAddressIdx = headers.findIndex(h => h.includes('job') && h.includes('address'));
+
+                        if (customerNameIdx === -1 || jobAddressIdx === -1) {
+                            alert('Could not find "Customer Name" or "Job Address" columns in the sheet.');
+                            console.error('Headers found:', headers);
+                            return;
+                        }
+
+                        // Get existing job names for duplicate check
+                        const existingJobNames = new Set(items.job.map(j => j.name.toLowerCase()));
+
+                        let addedCount = 0;
+                        let skippedCount = 0;
+                        const newJobs = [];
+
+                        // Process data rows (skip header)
+                        for (let i = 1; i < rows.length; i++) {
+                            const row = rows[i];
+                            const customerName = (row[customerNameIdx] || '').trim();
+                            const jobAddress = (row[jobAddressIdx] || '').trim();
+
+                            // Skip empty rows
+                            if (!customerName || !jobAddress) {
+                                continue;
+                            }
+
+                            // Skip duplicates
+                            if (existingJobNames.has(customerName.toLowerCase())) {
+                                skippedCount++;
+                                console.log(`⏭️ Skipped (duplicate): ${customerName}`);
+                                continue;
+                            }
+
+                            // Create new job
+                            const newJob = {
+                                id: 'job_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+                                name: customerName,
+                                address: jobAddress,
+                                details: '',
+                                date: '',
+                                status: 'scheduled',
+                                assignedCrews: [],
+                                assignedTrucks: [],
+                                lat: null,
+                                lng: null
+                            };
+
+                            items.job.push(newJob);
+                            existingJobNames.add(customerName.toLowerCase());
+                            newJobs.push(newJob);
+                            addedCount++;
+                            console.log(`✅ Added: ${customerName} - ${jobAddress}`);
+                        }
+
+                        this.saveState();
+                        this.render();
+
+                        // Geocode new jobs with delay to respect rate limits
+                        if (newJobs.length > 0) {
+                            console.log(`%c🗺️ Geocoding ${newJobs.length} new job addresses...`, 'color: #4A90E2; font-weight: bold;');
+
+                            newJobs.forEach((job, index) => {
+                                setTimeout(() => {
+                                    this.geocodeAddress(
+                                        job.address,
+                                        (lat, lng) => {
+                                            job.lat = lat;
+                                            job.lng = lng;
+                                            this.saveState();
+                                            this.renderMap();
+                                            console.log(`📍 Geocoded: ${job.name}`);
+                                        },
+                                        (error) => {
+                                            console.warn(`⚠️ Could not geocode: ${job.name} - ${job.address}`);
+                                        }
+                                    );
+                                }, index * 1500); // 1.5 second delay between requests
+                            });
+                        }
+
+                        const message = `Sync complete!\n\n✅ Added: ${addedCount} jobs\n⏭️ Skipped (duplicates): ${skippedCount}\n\n${addedCount > 0 ? 'Job locations are being placed on the map...' : ''}`;
+                        alert(message);
+                        console.log('%c' + message.replace(/\n/g, ' '), 'color: #10b981; font-weight: bold;');
+
+                    } catch (error) {
+                        console.error('Sync error:', error);
+                        alert(`Error syncing from Google Sheet:\n\n${error.message}\n\nMake sure the sheet is:\n1. Shared with "Anyone with the link"\n2. Or published to the web (File > Share > Publish to web)`);
+                    }
+                },
+
+                parseCSV: function(csvText) {
+                    const rows = [];
+                    let currentRow = [];
+                    let currentField = '';
+                    let inQuotes = false;
+
+                    for (let i = 0; i < csvText.length; i++) {
+                        const char = csvText[i];
+                        const nextChar = csvText[i + 1];
+
+                        if (inQuotes) {
+                            if (char === '"' && nextChar === '"') {
+                                currentField += '"';
+                                i++; // Skip next quote
+                            } else if (char === '"') {
+                                inQuotes = false;
+                            } else {
+                                currentField += char;
+                            }
+                        } else {
+                            if (char === '"') {
+                                inQuotes = true;
+                            } else if (char === ',') {
+                                currentRow.push(currentField);
+                                currentField = '';
+                            } else if (char === '\n' || (char === '\r' && nextChar === '\n')) {
+                                currentRow.push(currentField);
+                                rows.push(currentRow);
+                                currentRow = [];
+                                currentField = '';
+                                if (char === '\r') i++; // Skip \n in \r\n
+                            } else if (char !== '\r') {
+                                currentField += char;
+                            }
+                        }
+                    }
+
+                    // Add last field and row if any
+                    if (currentField || currentRow.length > 0) {
+                        currentRow.push(currentField);
+                        rows.push(currentRow);
+                    }
+
+                    return rows;
                 },
 
                 exportData: function() {
