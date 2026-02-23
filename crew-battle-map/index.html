@@ -1693,8 +1693,22 @@
                 },
 
                 geocodeAddress: function(address, callback, errorCallback) {
-                    // Use Nominatim (OpenStreetMap) for free geocoding
-                    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`;
+                    // Clean address for better Nominatim results:
+                    // 1. Strip unit/suite/apt numbers which confuse the geocoder
+                    // 2. Ensure state and country are present (default region: GA, USA)
+                    let query = address
+                        .replace(/\b(suite|ste|apt|unit|#)\s*[\w-]+,?\s*/gi, ' ')
+                        .replace(/\s{2,}/g, ' ')
+                        .trim()
+                        .replace(/,\s*$/, '');
+
+                    if (!/\b(GA|AL|FL|TN|SC|NC|Georgia)\b/i.test(query)) {
+                        query += ', GA, USA';
+                    } else if (!/\bUSA\b/i.test(query)) {
+                        query += ', USA';
+                    }
+
+                    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`;
 
                     fetch(url, {
                         headers: {
@@ -1704,10 +1718,10 @@
                         .then(response => response.json())
                         .then(data => {
                             if (data && data.length > 0) {
-                                console.log(`✓ Geocoded: ${address}`);
+                                console.log(`✓ Geocoded: ${address}${query !== address ? ` (as "${query}")` : ''}`);
                                 callback(parseFloat(data[0].lat), parseFloat(data[0].lon));
                             } else {
-                                console.warn(`✗ Could not find location for: ${address}`);
+                                console.warn(`✗ Could not find location for: ${address} (tried: "${query}")`);
                                 if (errorCallback) errorCallback(`Could not find location for: ${address}`);
                             }
                         })
@@ -2946,7 +2960,7 @@
                 clearAll: function() {
                     if (!confirm('Clear ALL data including items and map? This cannot be undone!')) return;
 
-                    items = { crew: [], truck: [], equipment: [] };
+                    items = { job: [], vendor: [], crew: [], truck: [], equipment: [] };
                     pieces = [];
                     mapImage = null;
                     zoomLevel = 1;
