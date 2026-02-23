@@ -1714,16 +1714,17 @@
                                     console.log(`✓ Geocoded: ${address}`);
                                     callback(parseFloat(data[0].lat), parseFloat(data[0].lon));
                                 } else {
-                                    // Strategy 2: zip-only fallback — pins approximate area
-                                    const zipUrl = `https://nominatim.openstreetmap.org/search?format=json&postalcode=${zip}&countrycodes=us`;
+                                    // Strategy 2: Google Maps fallback — better rural road coverage
+                                    const mapsUrl = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&key=${this.GOOGLE_MAPS_API_KEY}`;
                                     setTimeout(() => {
-                                        doFetch(zipUrl)
+                                        doFetch(mapsUrl)
                                             .then(data2 => {
-                                                if (data2 && data2.length > 0) {
-                                                    console.log(`📍 Approximate pin (zip ${zip}): ${address}`);
-                                                    callback(parseFloat(data2[0].lat), parseFloat(data2[0].lon));
+                                                if (data2 && data2.status === 'OK' && data2.results.length > 0) {
+                                                    const loc = data2.results[0].geometry.location;
+                                                    console.log(`✓ Geocoded via Google Maps: ${address}`);
+                                                    callback(loc.lat, loc.lng);
                                                 } else {
-                                                    console.warn(`✗ Could not geocode: ${address}`);
+                                                    console.warn(`✗ Could not geocode: ${address} (tried Nominatim + Google Maps)`);
                                                     if (errorCallback) errorCallback(`Could not find location for: ${address}`);
                                                 }
                                             })
@@ -1757,8 +1758,25 @@
                                 console.log(`✓ Geocoded: ${address}`);
                                 callback(parseFloat(data[0].lat), parseFloat(data[0].lon));
                             } else {
-                                console.warn(`✗ Could not find location for: ${address} (tried: "${query}")`);
-                                if (errorCallback) errorCallback(`Could not find location for: ${address}`);
+                                // Fallback to Google Maps
+                                const mapsUrl = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&key=${this.GOOGLE_MAPS_API_KEY}`;
+                                setTimeout(() => {
+                                    doFetch(mapsUrl)
+                                        .then(data2 => {
+                                            if (data2 && data2.status === 'OK' && data2.results.length > 0) {
+                                                const loc = data2.results[0].geometry.location;
+                                                console.log(`✓ Geocoded via Google Maps: ${address}`);
+                                                callback(loc.lat, loc.lng);
+                                            } else {
+                                                console.warn(`✗ Could not geocode: ${address} (tried Nominatim + Google Maps)`);
+                                                if (errorCallback) errorCallback(`Could not find location for: ${address}`);
+                                            }
+                                        })
+                                        .catch(error => {
+                                            console.error('Geocoding error for', address, ':', error);
+                                            if (errorCallback) errorCallback('Network error while geocoding');
+                                        });
+                                }, 2000);
                             }
                         })
                         .catch(error => {
@@ -2771,6 +2789,7 @@
                 // Google Sheets sync configuration
                 GOOGLE_SHEET_ID: '13bnntgZiXdCA2KQvJXpIBA1rCBzx3ZmeKakzYFFg7QA',
                 GOOGLE_SHEET_GID: '149833501', // WorkOrders tab
+                GOOGLE_MAPS_API_KEY: 'AIzaSyA9mJz1wSY6GBalGuiEGzE2aLPv0x7qelQ',
 
                 syncFromGoogleSheet: async function() {
                     const sheetUrl = `https://docs.google.com/spreadsheets/d/${this.GOOGLE_SHEET_ID}/gviz/tq?tqx=out:csv&gid=${this.GOOGLE_SHEET_GID}`;
