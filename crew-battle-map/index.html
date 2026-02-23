@@ -1488,6 +1488,7 @@
                 equipment: []
             };
 
+            let pieces = [];
             let map = null;
             let markers = {};
             let editingItemId = null;
@@ -1724,8 +1725,22 @@
                                                     console.log(`✓ Geocoded via Google Maps: ${address}`);
                                                     callback(loc.lat, loc.lng);
                                                 } else {
-                                                    console.warn(`✗ Could not geocode: ${address} (tried Nominatim + Google Maps)`);
-                                                    if (errorCallback) errorCallback(`Could not find location for: ${address}`);
+                                                    // Strategy 3: zip-only pin via Google Maps
+                                                    const zipOnlyUrl = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(zip + ', USA')}&key=${this.GOOGLE_MAPS_API_KEY}`;
+                                                    setTimeout(() => {
+                                                        doFetch(zipOnlyUrl)
+                                                            .then(data3 => {
+                                                                if (data3 && data3.status === 'OK' && data3.results.length > 0) {
+                                                                    const loc = data3.results[0].geometry.location;
+                                                                    console.log(`📍 Approximate pin (zip ${zip}): ${address}`);
+                                                                    callback(loc.lat, loc.lng);
+                                                                } else {
+                                                                    console.warn(`✗ Could not geocode: ${address} (tried Nominatim + Google Maps + zip fallback)`);
+                                                                    if (errorCallback) errorCallback(`Could not find location for: ${address}`);
+                                                                }
+                                                            })
+                                                            .catch(() => { if (errorCallback) errorCallback('Network error while geocoding'); });
+                                                    }, 2000);
                                                 }
                                             })
                                             .catch(() => { if (errorCallback) errorCallback('Network error while geocoding'); });
