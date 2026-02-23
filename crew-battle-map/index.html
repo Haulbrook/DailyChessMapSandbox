@@ -2752,60 +2752,79 @@
                             return;
                         }
 
-                        // Get existing job names for duplicate check
-                        const existingJobNames = new Set(items.job.map(j => j.name.toLowerCase()));
-
-                        let addedCount = 0;
-                        let skippedCount = 0;
-                        const newJobs = [];
-
-                        // Process data rows (skip header)
+                        // Build a map of active jobs from the sheet: lowercase name -> { name, address }
+                        const sheetJobs = new Map();
                         for (let i = 1; i < rows.length; i++) {
                             const row = rows[i];
                             const customerName = (row[customerNameIdx] || '').trim();
                             const jobAddress = (row[jobAddressIdx] || '').trim();
-
-                            // Skip empty rows
-                            if (!customerName || !jobAddress) {
-                                continue;
+                            if (customerName && jobAddress) {
+                                sheetJobs.set(customerName.toLowerCase(), { name: customerName, address: jobAddress });
                             }
+                        }
 
-                            // Skip duplicates
-                            if (existingJobNames.has(customerName.toLowerCase())) {
-                                skippedCount++;
-                                console.log(`⏭️ Skipped (duplicate): ${customerName}`);
-                                continue;
+                        // Remove jobs no longer in the sheet
+                        const beforeCount = items.job.length;
+                        items.job = items.job.filter(j => sheetJobs.has(j.name.toLowerCase()));
+                        const removedCount = beforeCount - items.job.length;
+                        if (removedCount > 0) {
+                            console.log(`%c🗑️ Removed ${removedCount} job(s) no longer in sheet`, 'color: #ef4444; font-weight: bold;');
+                        }
+
+                        // Update addresses for existing jobs; clear coords if address changed so they re-geocode
+                        items.job.forEach(job => {
+                            const sheetData = sheetJobs.get(job.name.toLowerCase());
+                            if (sheetData && sheetData.address !== job.address) {
+                                console.log(`🔄 Address updated for: ${job.name}`);
+                                job.address = sheetData.address;
+                                job.lat = null;
+                                job.lng = null;
                             }
+                        });
 
-                            // Create new job
-                            const newJob = {
-                                id: 'job_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
-                                name: customerName,
-                                address: jobAddress,
-                                details: '',
-                                date: '',
-                                status: 'scheduled',
-                                assignedCrews: [],
-                                assignedTrucks: [],
-                                lat: null,
-                                lng: null
-                            };
+                        // Add new jobs (names in sheet but not yet in items.job)
+                        const existingNames = new Set(items.job.map(j => j.name.toLowerCase()));
+                        let addedCount = 0;
+                        const newJobs = [];
 
-                            items.job.push(newJob);
-                            existingJobNames.add(customerName.toLowerCase());
-                            newJobs.push(newJob);
-                            addedCount++;
-                            console.log(`✅ Added: ${customerName} - ${jobAddress}`);
+                        for (const [nameLower, data] of sheetJobs) {
+                            if (!existingNames.has(nameLower)) {
+                                const newJob = {
+                                    id: 'job_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+                                    name: data.name,
+                                    address: data.address,
+                                    details: '',
+                                    date: '',
+                                    status: 'scheduled',
+                                    assignedCrews: [],
+                                    assignedTrucks: [],
+                                    lat: null,
+                                    lng: null
+                                };
+                                items.job.push(newJob);
+                                newJobs.push(newJob);
+                                addedCount++;
+                                console.log(`✅ Added: ${data.name} - ${data.address}`);
+                            }
                         }
 
                         this.saveState();
                         this.render();
 
-                        // Geocode new jobs with delay to respect rate limits
-                        if (newJobs.length > 0) {
-                            console.log(`%c🗺️ Geocoding ${newJobs.length} new job addresses...`, 'color: #4A90E2; font-weight: bold;');
+                        // Geocode all jobs missing coordinates (new + existing without coords)
+                        const jobsToGeocode = items.job.filter(j => j.address && !j.lat && !j.lng);
 
-                            newJobs.forEach((job, index) => {
+                        // Show alert BEFORE scheduling geocoding — alert() freezes the JS event loop
+                        // (including setTimeout timers), so we must dismiss it first to avoid
+                        // all geocode requests firing at once and hitting Nominatim's rate limit.
+                        const message = `Sync complete!\n\n✅ Added: ${addedCount} jobs\n🗑️ Removed: ${removedCount} jobs\n\n${jobsToGeocode.length > 0 ? `Placing ${jobsToGeocode.length} job location(s) on the map...` : 'All jobs already pinned.'}`;
+                        alert(message);
+                        console.log('%c' + message.replace(/\n/g, ' '), 'color: #10b981; font-weight: bold;');
+
+                        if (jobsToGeocode.length > 0) {
+                            console.log(`%c🗺️ Geocoding ${jobsToGeocode.length} job address(es)...`, 'color: #4A90E2; font-weight: bold;');
+
+                            jobsToGeocode.forEach((job, index) => {
                                 setTimeout(() => {
                                     this.geocodeAddress(
                                         job.address,
@@ -2817,16 +2836,12 @@
                                             console.log(`📍 Geocoded: ${job.name}`);
                                         },
                                         (error) => {
-                                            console.warn(`⚠️ Could not geocode: ${job.name} - ${job.address}`);
+                                            console.warn(`⚠️ Could not geocode: ${job.name} - "${job.address}"`);
                                         }
                                     );
                                 }, index * 1500); // 1.5 second delay between requests
                             });
                         }
-
-                        const message = `Sync complete!\n\n✅ Added: ${addedCount} jobs\n⏭️ Skipped (duplicates): ${skippedCount}\n\n${addedCount > 0 ? 'Job locations are being placed on the map...' : ''}`;
-                        alert(message);
-                        console.log('%c' + message.replace(/\n/g, ' '), 'color: #10b981; font-weight: bold;');
 
                     } catch (error) {
                         console.error('Sync error:', error);
