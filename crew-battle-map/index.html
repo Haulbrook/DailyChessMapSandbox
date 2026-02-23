@@ -1693,9 +1693,52 @@
                 },
 
                 geocodeAddress: function(address, callback, errorCallback) {
-                    // Clean address for better Nominatim results:
-                    // 1. Strip unit/suite/apt numbers which confuse the geocoder
-                    // 2. Ensure state and country are present (default region: GA, USA)
+                    const doFetch = (url) =>
+                        fetch(url, { headers: { 'User-Agent': 'DailyLogisticsManager/1.0' } })
+                            .then(r => r.json());
+
+                    const zipMatch = address.match(/\b(\d{5})\b/);
+
+                    if (zipMatch) {
+                        // Strategy 1: structured search — immune to comma/formatting issues
+                        // Extract street by matching up to the last street-type word
+                        const streetMatch = address.match(/^(.*?\b(?:rd|dr|st|ave|blvd|ln|way|ct|pl|cir|hwy|pkwy|trl|ter|trce|trace|pass|run|row|xing|crossing)\b\.?)/i);
+                        const street = (streetMatch ? streetMatch[1] : address.split(/[,\s]{2,}/)[0]).trim();
+                        const zip = zipMatch[1];
+
+                        const structuredUrl = `https://nominatim.openstreetmap.org/search?format=json&street=${encodeURIComponent(street)}&postalcode=${zip}&countrycodes=us`;
+
+                        doFetch(structuredUrl)
+                            .then(data => {
+                                if (data && data.length > 0) {
+                                    console.log(`✓ Geocoded: ${address}`);
+                                    callback(parseFloat(data[0].lat), parseFloat(data[0].lon));
+                                } else {
+                                    // Strategy 2: zip-only fallback — pins approximate area
+                                    const zipUrl = `https://nominatim.openstreetmap.org/search?format=json&postalcode=${zip}&countrycodes=us`;
+                                    setTimeout(() => {
+                                        doFetch(zipUrl)
+                                            .then(data2 => {
+                                                if (data2 && data2.length > 0) {
+                                                    console.log(`📍 Approximate pin (zip ${zip}): ${address}`);
+                                                    callback(parseFloat(data2[0].lat), parseFloat(data2[0].lon));
+                                                } else {
+                                                    console.warn(`✗ Could not geocode: ${address}`);
+                                                    if (errorCallback) errorCallback(`Could not find location for: ${address}`);
+                                                }
+                                            })
+                                            .catch(() => { if (errorCallback) errorCallback('Network error while geocoding'); });
+                                    }, 2000);
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Geocoding error for', address, ':', error);
+                                if (errorCallback) errorCallback('Network error while geocoding');
+                            });
+                        return;
+                    }
+
+                    // No zip code — free-text search with state/country appended
                     let query = address
                         .replace(/\b(suite|ste|apt|unit|#)\s*[\w-]+,?\s*/gi, ' ')
                         .replace(/\s{2,}/g, ' ')
@@ -1708,17 +1751,10 @@
                         query += ', USA';
                     }
 
-                    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`;
-
-                    fetch(url, {
-                        headers: {
-                            'User-Agent': 'DailyLogisticsManager/1.0'
-                        }
-                    })
-                        .then(response => response.json())
+                    doFetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=us`)
                         .then(data => {
                             if (data && data.length > 0) {
-                                console.log(`✓ Geocoded: ${address}${query !== address ? ` (as "${query}")` : ''}`);
+                                console.log(`✓ Geocoded: ${address}`);
                                 callback(parseFloat(data[0].lat), parseFloat(data[0].lon));
                             } else {
                                 console.warn(`✗ Could not find location for: ${address} (tried: "${query}")`);
